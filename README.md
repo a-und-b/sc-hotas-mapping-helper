@@ -1,10 +1,8 @@
-> Note: WORK IN PROGRESS. Bind Mode is not generating correct mappings yet.
-
 # SC HOTAS Mapping Helper
 
 A browser-based tool for testing and creating HOTAS binding profiles for [Star Citizen](https://robertsspaceindustries.com/) — built specifically for **Linux** players who don't have access to tools like Thrustmaster's T.A.R.G.E.T. software.
 
-Works with **any joystick or throttle** recognized by the browser Gamepad API, with auto-detection for the popular **Thrustmaster T16000m + TWCS Throttle** combo.
+Works with **any joystick or throttle** recognized by the browser Gamepad API. Includes a built-in device database with profiles for **10 popular HOTAS devices** (T16000M, TWCS, VKB Gladiator, VirPil, Logitech, Saitek, CH Products, and more) with automatic detection and correct axis mapping.
 
 > **Zero install. No dependencies. Just open the HTML file in your browser.**
 
@@ -28,7 +26,7 @@ Useful for verifying that your devices are detected correctly on Linux, checking
 
 Create a full Star Citizen keybinding profile from scratch — or import and edit an existing one:
 
-1. Open a category (Flight Movement, Weapons, Shields, Mining, etc.)
+1. Open a category (Flight Movement, Weapons, Shields, Mining, Salvage, etc.)
 2. Click **Bind** next to any Star Citizen action
 3. Press a button or move an axis on your HOTAS
 4. The input is captured and mapped
@@ -36,12 +34,39 @@ Create a full Star Citizen keybinding profile from scratch — or import and edi
 
 Features:
 
-- **70+ Star Citizen actions** organized by category
+- **455 Star Citizen actions** across 23 categories, sourced from Boxxy-Binder's AllBinds.xml — covering flight, combat, targeting, mining, salvage, scanning, EVA, ground vehicles, turrets, tractor beam, docking, and more
+- **Tier filter** — show Essential actions only (~56), Essential + Extended (~315), or all 455. Keeps the UI manageable while giving access to everything
+- **Search & filter toolbar** — text search, type filter (axes/buttons), status filter (bound/unbound/conflicts), and tier filter
+- **Device auto-detection** — database of 10 HOTAS devices with correct SC axis name mappings (including proper `rotz` for twist axes)
+- **Three-tier axis mapping** — device-specific profiles → generic HID fallback → raw index, so axes map correctly across different hardware
+- **Persistent bindings** — bindings, inversions, and profile name saved to localStorage (survives page refresh)
+- **Axis inversion toggles** — per-action inversion with proper `optionGroup`-based XML export matching Star Citizen's format
+- **Conflict highlighting** — duplicate bindings are visually highlighted in red
+- **Friendly input names** — `js1_button3` displays as `JS1 Btn 3`, `js2_rotz` as `JS2 Rz Axis`
 - **Live input monitor** sidebar showing all axes and buttons in real-time while binding
-- **Conflict detection** warns you about duplicate bindings
-- **Import XML** to load and edit existing profiles
+- **Import XML** to load and edit existing profiles (with full inversion state round-trip)
 - **Export** as a properly formatted SC actionmap XML
 - **Copy to clipboard** or **download** the XML file directly
+
+---
+
+## Supported Devices
+
+The tool includes profiles for these devices (auto-detected by name):
+
+| Device | Type | Axes Mapped |
+|--------|------|-------------|
+| Thrustmaster T.16000M FCS | Joystick | X, Y, Rz (twist) |
+| Thrustmaster TWCS Throttle | Throttle | X, Y, Z (slider), Rx (rocker) |
+| VKB Gladiator NXT / EVO | Joystick | X, Y, Rz (twist) |
+| VirPil Controls | Joystick | X, Y, Rz |
+| Logitech Extreme 3D Pro | Joystick | X, Y, Rz, Slider |
+| Logitech X52 / X52 Pro | HOTAS | X, Y, Rz |
+| Logitech X56 Rhino | HOTAS | X, Y, Rz |
+| Saitek / Mad Catz | Various | X, Y, Rz |
+| CH Products | Various | X, Y, Rz |
+
+Unrecognized devices use a generic fallback mapping. You can always verify your axis mappings in Test Mode.
 
 ---
 
@@ -91,7 +116,7 @@ This is the most common issue on Linux. Wine's HID layer reports both the joysti
 
 **What still works:** All button and axis bindings using `js1_` / `js2_` prefixes work correctly because they reference the device by instance number, not by name. Your flight controls, weapons, and throttle should all respond.
 
-**What breaks:** The `<deviceoptions>` XML section matches devices by name, so it's impossible to set different deadzones for the joystick vs. the throttle in the XML alone. The included profile uses a single `<deviceoptions>` block with conservative deadzones for both.
+**What breaks:** The `<deviceoptions>` XML section matches devices by name, so it's impossible to set different deadzones for the joystick vs. the throttle in the XML alone.
 
 **Fix:** After loading the profile with `pp_RebindKeys`, go to Options > Keybinding > Advanced Controls and adjust deadzones per-device in the UI. The ministick on the TWCS typically needs a higher deadzone (~15%) to avoid drift, while the main joystick axes can be lower (~5%).
 
@@ -123,31 +148,9 @@ Star Citizen through Wine/Proton may see different axis indices than the browser
 
 ---
 
-## Included Files
-
-| File | Description |
-|------|-------------|
-| `hotas_tester.html` | The main tool — test mode + bind mode with XML export |
-| `layout_T16000m_HOTAS_Allrounder_exported.xml` | Pre-made all-rounder profile for T16000m + TWCS |
-| `T16000m_HOTAS_Cheatsheet.md` | Quick-reference card for the included profile |
-
----
-
-## Pre-Made Profile: T16000m All-Rounder
-
-The repo includes a ready-to-use profile for the **Thrustmaster T16000m FCS HOTAS** (joystick + TWCS throttle) covering flight, combat, targeting, shields, power management, and mining.
-
-**Joystick (JS1):** Pitch/Roll/Yaw on axes, trigger = fire, thumb = secondary fire, hat = targeting, base buttons = scanning, ESP, COMSTAB, etc.
-
-**Throttle (JS2):** Main slider = throttle, ministick = strafe, rocker = forward/back strafe, paddle = boost, buttons = QT/landing/power/mining, hat = shield management.
-
-See `T16000m_HOTAS_Cheatsheet.md` for the full layout.
-
----
-
 ## How It Was Built
 
-This tool was co-created with [Claude](https://claude.ai) (Anthropic) in a single session using [Cowork mode](https://claude.ai). The entire workflow — researching the SC XML format, designing the HOTAS layout, building the tester, adding bind mode with XML export — was a collaborative back-and-forth between human ideas and AI implementation.
+This tool was co-created with [Claude](https://claude.ai) (Anthropic) using [Claude Code](https://docs.anthropic.com/en/docs/claude-code). The action database (455 actions across 23 categories) was extracted from [Boxxy-Binder](https://github.com/BoxximusPrime/Boxxy-Binder)'s AllBinds.xml, with tier classification and `optionGroup` metadata for correct SC XML export.
 
 ---
 
@@ -156,10 +159,10 @@ This tool was co-created with [Claude](https://claude.ai) (Anthropic) in a singl
 Contributions are welcome! Some ideas:
 
 - **More pre-made profiles** for other HOTAS setups (X52, X56, VKB, Virpil, etc.)
-- **Additional SC actions** as new gameplay systems are added
 - **Dual-stick (HOSAS) support** with dedicated layout templates
-- **Improved axis auto-detection** for more Linux HID driver variants
+- **Dynamic Test Mode UI** generated from device profiles instead of hardcoded panels
 - **Deadzone/curve editor** with visual preview
+- **Improved axis auto-detection** for more Linux HID driver variants
 
 If you create a profile for your own HOTAS and want to share it, PRs are very welcome.
 
@@ -174,5 +177,6 @@ This project is licensed under the **GNU General Public License v3.0** — see [
 ## Links
 
 - [Star Citizen](https://robertsspaceindustries.com/)
+- [Boxxy-Binder](https://github.com/BoxximusPrime/Boxxy-Binder) — the Tauri/Rust SC binding tool that inspired many improvements here
 - [RSI Knowledge Base: Custom Profiles](https://support.robertsspaceindustries.com/hc/en-us/articles/360000183328)
 - [Star Citizen Wiki: Controls](https://starcitizen.fandom.com/wiki/Controls)
