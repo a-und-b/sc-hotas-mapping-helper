@@ -465,9 +465,9 @@
         <div style="flex:1; min-width:200px;">
           <div class="axes-section">
             <h3>Axes</h3>
-            <div class="axis-row"><span class="axis-label">X (Roll)</span><div class="axis-bar-container"><div class="axis-bar-center"></div><div class="axis-deadzone" id="js1-dz-x"></div><div class="axis-bar-fill" id="js1-bar-x"></div></div><span class="axis-value" id="js1-val-x">0.00</span><span class="axis-action" id="js1-act-x">v_roll</span></div>
-            <div class="axis-row"><span class="axis-label">Y (Pitch)</span><div class="axis-bar-container"><div class="axis-bar-center"></div><div class="axis-deadzone" id="js1-dz-y"></div><div class="axis-bar-fill" id="js1-bar-y"></div></div><span class="axis-value" id="js1-val-y">0.00</span><span class="axis-action" id="js1-act-y">v_pitch</span></div>
-            <div class="axis-row"><span class="axis-label">Rz (Yaw)</span><div class="axis-bar-container"><div class="axis-bar-center"></div><div class="axis-deadzone" id="js1-dz-z"></div><div class="axis-bar-fill" id="js1-bar-z"></div></div><span class="axis-value" id="js1-val-z">0.00</span><span class="axis-action" id="js1-act-z">v_yaw</span></div>
+            <div class="axis-row"><span class="axis-label">X (Roll)</span><div class="axis-bar-container"><div class="axis-bar-center"></div><div class="axis-deadzone" id="js1-dz-x"></div><div class="axis-bar-fill" id="js1-bar-x"></div></div><span class="axis-value" id="js1-val-x">0.00</span><span class="axis-action" id="js1-act-x">js1_x</span></div>
+            <div class="axis-row"><span class="axis-label">Y (Pitch)</span><div class="axis-bar-container"><div class="axis-bar-center"></div><div class="axis-deadzone" id="js1-dz-y"></div><div class="axis-bar-fill" id="js1-bar-y"></div></div><span class="axis-value" id="js1-val-y">0.00</span><span class="axis-action" id="js1-act-y">js1_y</span></div>
+            <div class="axis-row"><span class="axis-label">Rz (Yaw)</span><div class="axis-bar-container"><div class="axis-bar-center"></div><div class="axis-deadzone" id="js1-dz-z"></div><div class="axis-bar-fill" id="js1-bar-z"></div></div><span class="axis-value" id="js1-val-z">0.00</span><span class="axis-action" id="js1-act-z">js1_rotz</span></div>
           </div>
         </div>
       </div>
@@ -482,10 +482,10 @@
             <div class="hat-center"></div>
           </div>
           <div class="hat-labels">
-            <div class="hat-label-row" id="js1-hat-label-up"><span class="dir-tag">&blacktriangle;</span> <span class="action-name">Nearest Hostile</span></div>
-            <div class="hat-label-row" id="js1-hat-label-right"><span class="dir-tag">&#9654;</span> <span class="action-name">Cycle Hostile &rarr;</span></div>
-            <div class="hat-label-row" id="js1-hat-label-down"><span class="dir-tag">&blacktriangledown;</span> <span class="action-name">Cycle Friendly &rarr;</span></div>
-            <div class="hat-label-row" id="js1-hat-label-left"><span class="dir-tag">&#9664;</span> <span class="action-name">Cycle Hostile &larr;</span></div>
+            <div class="hat-label-row" id="js1-hat-label-up"><span class="dir-tag">&blacktriangle;</span> <span class="action-name">hat1_up</span></div>
+            <div class="hat-label-row" id="js1-hat-label-right"><span class="dir-tag">&#9654;</span> <span class="action-name">hat1_right</span></div>
+            <div class="hat-label-row" id="js1-hat-label-down"><span class="dir-tag">&blacktriangledown;</span> <span class="action-name">hat1_down</span></div>
+            <div class="hat-label-row" id="js1-hat-label-left"><span class="dir-tag">&#9664;</span> <span class="action-name">hat1_left</span></div>
           </div>
         </div>
       </div>
@@ -512,10 +512,10 @@
         <div style="flex:1; min-width:200px;">
           <div class="axes-section">
             <h3>Axes</h3>
-            <div class="axis-row"><span class="axis-label">Z (Throttle)</span><div class="axis-bar-container"><div class="axis-deadzone" id="js2-dz-z"></div><div class="axis-bar-fill throttle" id="js2-bar-z"></div></div><span class="axis-value" id="js2-val-z">0.00</span><span class="axis-action" id="js2-act-z">v_strafe_longitudinal</span></div>
-            <div class="axis-row"><span class="axis-label">X (Strafe L/R)</span><div class="axis-bar-container"><div class="axis-bar-center"></div><div class="axis-deadzone" id="js2-dz-x"></div><div class="axis-bar-fill" id="js2-bar-x"></div></div><span class="axis-value" id="js2-val-x">0.00</span><span class="axis-action" id="js2-act-x">v_strafe_lateral</span></div>
-            <div class="axis-row"><span class="axis-label">Y (Strafe U/D)</span><div class="axis-bar-container"><div class="axis-bar-center"></div><div class="axis-deadzone" id="js2-dz-y"></div><div class="axis-bar-fill" id="js2-bar-y"></div></div><span class="axis-value" id="js2-val-y">0.00</span><span class="axis-action" id="js2-act-y">v_strafe_vertical</span></div>
-            <div class="axis-row"><span class="axis-label">RX (Rocker)</span><div class="axis-bar-container"><div class="axis-bar-center"></div><div class="axis-deadzone" id="js2-dz-rx"></div><div class="axis-bar-fill" id="js2-bar-rx"></div></div><span class="axis-value" id="js2-val-rx">0.00</span><span class="axis-action" id="js2-act-rx">v_roll</span></div>
+            <div class="axis-row"><span class="axis-label">Z (Throttle)</span><div class="axis-bar-container"><div class="axis-deadzone" id="js2-dz-z"></div><div class="axis-bar-fill throttle" id="js2-bar-z"></div></div><span class="axis-value" id="js2-val-z">0.00</span><span class="axis-action" id="js2-act-z">js2_z</span></div>
+            <div class="axis-row"><span class="axis-label">X (Strafe L/R)</span><div class="axis-bar-container"><div class="axis-bar-center"></div><div class="axis-deadzone" id="js2-dz-x"></div><div class="axis-bar-fill" id="js2-bar-x"></div></div><span class="axis-value" id="js2-val-x">0.00</span><span class="axis-action" id="js2-act-x">js2_x</span></div>
+            <div class="axis-row"><span class="axis-label">Y (Strafe U/D)</span><div class="axis-bar-container"><div class="axis-bar-center"></div><div class="axis-deadzone" id="js2-dz-y"></div><div class="axis-bar-fill" id="js2-bar-y"></div></div><span class="axis-value" id="js2-val-y">0.00</span><span class="axis-action" id="js2-act-y">js2_y</span></div>
+            <div class="axis-row"><span class="axis-label">RX (Rocker)</span><div class="axis-bar-container"><div class="axis-bar-center"></div><div class="axis-deadzone" id="js2-dz-rx"></div><div class="axis-bar-fill" id="js2-bar-rx"></div></div><span class="axis-value" id="js2-val-rx">0.00</span><span class="axis-action" id="js2-act-rx">js2_rotx</span></div>
           </div>
         </div>
       </div>
@@ -530,10 +530,10 @@
             <div class="hat-center"></div>
           </div>
           <div class="hat-labels">
-            <div class="hat-label-row" id="js2-hat-label-up"><span class="dir-tag">&blacktriangle;</span> <span class="action-name">Shield &rarr; Front</span></div>
-            <div class="hat-label-row" id="js2-hat-label-right"><span class="dir-tag">&#9654;</span> <span class="action-name">Shield &rarr; Right</span></div>
-            <div class="hat-label-row" id="js2-hat-label-down"><span class="dir-tag">&blacktriangledown;</span> <span class="action-name">Shield &rarr; Rear</span></div>
-            <div class="hat-label-row" id="js2-hat-label-left"><span class="dir-tag">&#9664;</span> <span class="action-name">Shield &rarr; Left</span></div>
+            <div class="hat-label-row" id="js2-hat-label-up"><span class="dir-tag">&blacktriangle;</span> <span class="action-name">hat1_up</span></div>
+            <div class="hat-label-row" id="js2-hat-label-right"><span class="dir-tag">&#9654;</span> <span class="action-name">hat1_right</span></div>
+            <div class="hat-label-row" id="js2-hat-label-down"><span class="dir-tag">&blacktriangledown;</span> <span class="action-name">hat1_down</span></div>
+            <div class="hat-label-row" id="js2-hat-label-left"><span class="dir-tag">&#9664;</span> <span class="action-name">hat1_left</span></div>
           </div>
         </div>
       </div>
@@ -1299,12 +1299,28 @@ const SC_ACTIONS = {
 };
 
 // ==============================================================
+// ACTION LABEL LOOKUP (flat map for O(1) access)
+// ==============================================================
+const ACTION_LABEL_MAP = {};
+for (const cat of Object.values(SC_ACTIONS)) {
+  for (const a of cat.actions) ACTION_LABEL_MAP[a.name] = a.label;
+}
+
+// ==============================================================
 // BINDING STATE
 // ==============================================================
 let bindings = {}; // { 'v_pitch': 'js1_y', ... }
 let axisInversions = {}; // { 'v_strafe_longitudinal': true, ... }
 let listeningAction = null; // action name currently waiting for input
 let baselineAxes = { js1: null, js2: null }; // snapshot axes at listen start
+let reverseBindings = {}; // { 'js1_y': 'Pitch', 'js2_z': 'Throttle (Fwd/Back)', ... }
+
+function rebuildReverseBindings() {
+  reverseBindings = {};
+  for (const [action, input] of Object.entries(bindings)) {
+    reverseBindings[input] = ACTION_LABEL_MAP[action] || action;
+  }
+}
 
 // ==============================================================
 // PERSISTENCE (localStorage)
@@ -1353,42 +1369,19 @@ let lastDetectedInput = '';
 // ==============================================================
 // TEST MODE MAPS (unchanged from original)
 // ==============================================================
-const JS1_BUTTON_MAP = {
-  0:  { sc: 'button1',  action: 'Fire Weapons',         detail: 'v_weapon_preset_attack' },
-  1:  { sc: 'button2',  action: 'Fire Group 2',         detail: 'v_weapon_preset_fire_guns0' },
-  2:  { sc: 'button3',  action: 'Launch Missile',       detail: 'v_weapon_missile_launch' },
-  3:  { sc: 'button4',  action: 'Countermeasures',      detail: 'v_weapon_countermeasure_decoy_launch' },
-  4:  { sc: 'button5',  action: 'Pin/Unpin Target',     detail: 'v_target_toggle_pinned_focused' },
-  5:  { sc: 'button6',  action: 'Gimbal Lock',          detail: 'v_weapon_gimbal_cycle_all' },
-  6:  { sc: 'button7',  action: 'Look Behind',          detail: 'v_view_look_behind' },
-  7:  { sc: 'button8',  action: 'Scan Trigger',         detail: 'v_scanning_trigger_scan' },
-  8:  { sc: 'button9',  action: 'Cabin Lights',         detail: 'v_toggle_cabin_lights' },
-  9:  { sc: 'button10', action: 'ESP Toggle',           detail: 'v_ifcs_toggle_esp' },
-  10: { sc: 'button11', action: 'Master Mode',          detail: 'v_master_mode_cycle' },
-  11: { sc: 'button12', action: 'Target Nearest',       detail: 'v_target_cycle_nearest' },
-  12: { sc: 'button13', action: 'Cycle Sub-Target',     detail: 'v_target_cycle_subsystem_fwd' },
-  13: { sc: 'button14', action: 'Scan Focus',           detail: 'v_scanning_focus_scan' },
-  14: { sc: 'button15', action: 'Cycle Countermeasure',  detail: 'v_weapon_countermeasure_decoy_cycle_fwd' },
-  15: { sc: 'button16', action: 'Cycle View',           detail: 'v_view_cycle_fwd' },
-};
-const JS2_BUTTON_MAP = {
-  0:  { sc: 'button1',  action: 'Afterburner',          detail: 'v_afterburner' },
-  1:  { sc: 'button2',  action: 'Space Brake',          detail: 'v_space_brake' },
-  2:  { sc: 'button3',  action: 'Decoupled Toggle',     detail: 'v_ifcs_vector_decoupling_toggle' },
-  3:  { sc: 'button4',  action: 'Landing Gear',         detail: 'v_toggle_landing_system' },
-  4:  { sc: 'button5',  action: 'Quantum Drive',        detail: 'v_toggle_qdrive_engagement' },
-  5:  { sc: 'button6',  action: 'Speed Limiter Toggle', detail: 'v_ifcs_speed_limiter_toggle' },
-  6:  { sc: 'button7',  action: 'Flight Ready',         detail: 'v_flightready' },
-  7:  { sc: 'button8',  action: 'Mining Mode',          detail: 'v_mining_toggle' },
-  8:  { sc: 'button9',  action: 'Pwr: Toggle',         detail: 'v_power_toggle' },
-  9:  { sc: 'button10', action: 'Pwr: Weapons',        detail: 'v_engineering_assignment_focus_weapons' },
-  10: { sc: 'button11', action: 'Pwr: Shields',        detail: 'v_engineering_assignment_focus_shields' },
-  11: { sc: 'button12', action: 'Pwr: Engines',        detail: 'v_engineering_assignment_focus_thrusters' },
-  12: { sc: 'button13', action: 'Pwr: Reset',          detail: 'v_engineering_assignment_focus_reset' },
-  13: { sc: 'button14', action: 'Shield Reset',         detail: 'v_shield_reset_level' },
-};
-const JS1_HAT_ACTIONS = { up: 'Nearest Hostile', right: 'Cycle Hostile &rarr;', down: 'Cycle Friendly &rarr;', left: 'Cycle Hostile &larr;' };
-const JS2_HAT_ACTIONS = { up: 'Shield: Front', right: 'Shield: Right', down: 'Shield: Rear', left: 'Shield: Left' };
+// Button maps: 'action' is the default label shown when no binding exists.
+// refreshButtonGrid() overwrites with actual bound action labels from reverseBindings.
+function buildButtonMap(prefix, count) {
+  const map = {};
+  for (let i = 0; i < count; i++) {
+    map[i] = { sc: `button${i+1}`, action: `button${i+1}`, detail: `${prefix}_button${i+1}` };
+  }
+  return map;
+}
+const JS1_BUTTON_MAP = buildButtonMap('js1', 16);
+const JS2_BUTTON_MAP = buildButtonMap('js2', 14);
+const JS1_HAT_ACTIONS = { up: 'hat1_up', right: 'hat1_right', down: 'hat1_down', left: 'hat1_left' };
+const JS2_HAT_ACTIONS = { up: 'hat1_up', right: 'hat1_right', down: 'hat1_down', left: 'hat1_left' };
 
 // ==============================================================
 // MODE SWITCHING
@@ -1403,6 +1396,7 @@ function switchMode(mode) {
   document.getElementById('no-gamepad').style.display = anyGP ? 'none' : 'block';
   if (mode === 'test' && anyGP) {
     document.getElementById('test-mode').style.display = 'block';
+    refreshTestModeLabels();
   }
 }
 
@@ -1521,6 +1515,58 @@ function initButtonGrid(cid, bmap) {
 }
 initButtonGrid('js1-buttons', JS1_BUTTON_MAP);
 initButtonGrid('js2-buttons', JS2_BUTTON_MAP);
+
+// ==============================================================
+// TEST MODE: Sync labels with Bind Mode bindings
+// ==============================================================
+function refreshButtonGrid(prefix, buttonMap) {
+  for (const [i, info] of Object.entries(buttonMap)) {
+    const el = document.getElementById(`${prefix}-buttons-${i}`);
+    if (!el) continue;
+    const inputKey = `${prefix}_button${parseInt(i)+1}`;
+    const boundLabel = reverseBindings[inputKey];
+    const actionSpan = el.querySelector('.btn-action');
+    if (actionSpan) {
+      actionSpan.textContent = boundLabel || info.action;
+      actionSpan.title = boundLabel ? inputKey : info.detail;
+    }
+  }
+}
+
+function refreshAxisLabels() {
+  const axisSpans = {
+    'js1-act-x': 'js1_x',  'js1-act-y': 'js1_y',  'js1-act-z': 'js1_rotz',
+    'js2-act-z': 'js2_z',  'js2-act-x': 'js2_x',  'js2-act-y': 'js2_y',  'js2-act-rx': 'js2_rotx'
+  };
+  for (const [spanId, inputKey] of Object.entries(axisSpans)) {
+    const el = document.getElementById(spanId);
+    if (el) el.textContent = reverseBindings[inputKey] || inputKey;
+  }
+}
+
+function refreshHatLabels() {
+  const hatConfigs = [
+    ['js1', JS1_HAT_ACTIONS],
+    ['js2', JS2_HAT_ACTIONS]
+  ];
+  for (const [prefix, defaultActions] of hatConfigs) {
+    for (const dir of ['up', 'down', 'left', 'right']) {
+      const labelEl = document.getElementById(`${prefix}-hat-label-${dir}`);
+      if (!labelEl) continue;
+      const nameSpan = labelEl.querySelector('.action-name');
+      if (!nameSpan) continue;
+      const inputKey = `${prefix}_hat1_${dir}`;
+      nameSpan.textContent = reverseBindings[inputKey] || defaultActions[dir];
+    }
+  }
+}
+
+function refreshTestModeLabels() {
+  refreshButtonGrid('js1', JS1_BUTTON_MAP);
+  refreshButtonGrid('js2', JS2_BUTTON_MAP);
+  refreshAxisLabels();
+  refreshHatLabels();
+}
 
 function setDeadzone(id, dz) {
   const el = document.getElementById(id); if(!el) return;
@@ -1654,6 +1700,8 @@ document.getElementById('bind-filter-type').addEventListener('change', filterBin
 document.getElementById('bind-filter-status').addEventListener('change', filterBindUI);
 document.getElementById('bind-filter-tier').addEventListener('change', filterBindUI);
 filterBindUI(); // Apply initial tier filter
+rebuildReverseBindings(); // Sync Test Mode with loaded bindings
+refreshTestModeLabels();
 
 // ==============================================================
 // BIND MODE: Mini monitor
@@ -1718,6 +1766,8 @@ function captureInput(scInput) {
   if (row) row.classList.remove('listening');
   listeningAction = null;
   updateStats();
+  rebuildReverseBindings();
+  refreshTestModeLabels();
   saveBindings();
 }
 
@@ -1726,6 +1776,8 @@ function clearBinding(actionName) {
   const valEl = document.getElementById(`bind-val-${actionName}`);
   if (valEl) { valEl.textContent = '---'; valEl.className = 'binding-value empty'; }
   updateStats();
+  rebuildReverseBindings();
+  refreshTestModeLabels();
   saveBindings();
 }
 
@@ -1742,6 +1794,8 @@ function clearAllBindings() {
   buildBindUI();
   filterBindUI();
   updateStats();
+  rebuildReverseBindings();
+  refreshTestModeLabels();
   saveBindings();
 }
 
@@ -2040,6 +2094,8 @@ document.getElementById('import-xml-input').addEventListener('change', (e) => {
       buildBindUI();
       filterBindUI();
       updateStats();
+      rebuildReverseBindings();
+      refreshTestModeLabels();
       saveBindings();
       showToast(`Imported ${Object.keys(bindings).length} bindings from "${pName}"`);
     } catch (err) {
@@ -2075,8 +2131,8 @@ function update() {
     const th=0.05;
     const ax=document.getElementById('js1-act-x'),ay=document.getElementById('js1-act-y'),az=document.getElementById('js1-act-z');
     if(ax)ax.classList.toggle('active',Math.abs(x)>th); if(ay)ay.classList.toggle('active',Math.abs(y)>th); if(az)az.classList.toggle('active',Math.abs(z)>th);
-    for(const[i,info]of Object.entries(JS1_BUTTON_MAP)){const bi=parseInt(i);const el=document.getElementById(`js1-buttons-${i}`);if(el&&js1.buttons[bi]){const p=js1.buttons[bi].pressed;el.classList.toggle('active',p);const pp=prevButtonStates.js1[bi]||false;if(p&&!pp)addLogEntry('JS1',info.sc,info.action);prevButtonStates.js1[bi]=p;}}
-    const hs=getHatState(js1);updateHat('js1',hs);for(const d of['up','down','left','right']){const pd=prevButtonStates.js1[`hat_${d}`]||false;if(hs[d]&&!pd)addLogEntry('JS1',`hat1_${d}`,JS1_HAT_ACTIONS[d]);prevButtonStates.js1[`hat_${d}`]=hs[d];}
+    for(const[i,info]of Object.entries(JS1_BUTTON_MAP)){const bi=parseInt(i);const el=document.getElementById(`js1-buttons-${i}`);if(el&&js1.buttons[bi]){const p=js1.buttons[bi].pressed;el.classList.toggle('active',p);const pp=prevButtonStates.js1[bi]||false;if(p&&!pp)addLogEntry('JS1',info.sc,reverseBindings[`js1_button${bi+1}`]||info.action);prevButtonStates.js1[bi]=p;}}
+    const hs=getHatState(js1);updateHat('js1',hs);for(const d of['up','down','left','right']){const pd=prevButtonStates.js1[`hat_${d}`]||false;if(hs[d]&&!pd)addLogEntry('JS1',`hat1_${d}`,reverseBindings[`js1_hat1_${d}`]||JS1_HAT_ACTIONS[d]);prevButtonStates.js1[`hat_${d}`]=hs[d];}
   }
   if (currentMode === 'test' && js2) {
     const a=js2.axes,mx=a[0]||0,my=a[1]||0,thr=a.length>2?a[2]:0;
@@ -2086,8 +2142,8 @@ function update() {
     const th=0.05;
     const tz=document.getElementById('js2-act-z'),tx=document.getElementById('js2-act-x'),ty=document.getElementById('js2-act-y'),trx=document.getElementById('js2-act-rx');
     if(tz)tz.classList.toggle('active',Math.abs(thr)>th);if(tx)tx.classList.toggle('active',Math.abs(mx)>th);if(ty)ty.classList.toggle('active',Math.abs(my)>th);if(trx)trx.classList.toggle('active',Math.abs(rk)>th);
-    for(const[i,info]of Object.entries(JS2_BUTTON_MAP)){const bi=parseInt(i);const el=document.getElementById(`js2-buttons-${i}`);if(el&&js2.buttons[bi]){const p=js2.buttons[bi].pressed;el.classList.toggle('active',p);const pp=prevButtonStates.js2[bi]||false;if(p&&!pp)addLogEntry('JS2',info.sc,info.action);prevButtonStates.js2[bi]=p;}}
-    const hs=getHatState(js2);updateHat('js2',hs);for(const d of['up','down','left','right']){const pd=prevButtonStates.js2[`hat_${d}`]||false;if(hs[d]&&!pd)addLogEntry('JS2',`hat1_${d}`,JS2_HAT_ACTIONS[d]);prevButtonStates.js2[`hat_${d}`]=hs[d];}
+    for(const[i,info]of Object.entries(JS2_BUTTON_MAP)){const bi=parseInt(i);const el=document.getElementById(`js2-buttons-${i}`);if(el&&js2.buttons[bi]){const p=js2.buttons[bi].pressed;el.classList.toggle('active',p);const pp=prevButtonStates.js2[bi]||false;if(p&&!pp)addLogEntry('JS2',info.sc,reverseBindings[`js2_button${bi+1}`]||info.action);prevButtonStates.js2[bi]=p;}}
+    const hs=getHatState(js2);updateHat('js2',hs);for(const d of['up','down','left','right']){const pd=prevButtonStates.js2[`hat_${d}`]||false;if(hs[d]&&!pd)addLogEntry('JS2',`hat1_${d}`,reverseBindings[`js2_hat1_${d}`]||JS2_HAT_ACTIONS[d]);prevButtonStates.js2[`hat_${d}`]=hs[d];}
   }
 
   // -- Bind mode updates --
