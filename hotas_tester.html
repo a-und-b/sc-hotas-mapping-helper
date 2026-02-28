@@ -512,10 +512,10 @@
         <div style="flex:1; min-width:200px;">
           <div class="axes-section">
             <h3>Axes</h3>
-            <div class="axis-row"><span class="axis-label">Z (Throttle)</span><div class="axis-bar-container"><div class="axis-deadzone" id="js2-dz-z"></div><div class="axis-bar-fill throttle" id="js2-bar-z"></div></div><span class="axis-value" id="js2-val-z">0.00</span><span class="axis-action" id="js2-act-z">v_throttle_abs</span></div>
+            <div class="axis-row"><span class="axis-label">Z (Throttle)</span><div class="axis-bar-container"><div class="axis-deadzone" id="js2-dz-z"></div><div class="axis-bar-fill throttle" id="js2-bar-z"></div></div><span class="axis-value" id="js2-val-z">0.00</span><span class="axis-action" id="js2-act-z">v_strafe_longitudinal</span></div>
             <div class="axis-row"><span class="axis-label">X (Strafe L/R)</span><div class="axis-bar-container"><div class="axis-bar-center"></div><div class="axis-deadzone" id="js2-dz-x"></div><div class="axis-bar-fill" id="js2-bar-x"></div></div><span class="axis-value" id="js2-val-x">0.00</span><span class="axis-action" id="js2-act-x">v_strafe_lateral</span></div>
             <div class="axis-row"><span class="axis-label">Y (Strafe U/D)</span><div class="axis-bar-container"><div class="axis-bar-center"></div><div class="axis-deadzone" id="js2-dz-y"></div><div class="axis-bar-fill" id="js2-bar-y"></div></div><span class="axis-value" id="js2-val-y">0.00</span><span class="axis-action" id="js2-act-y">v_strafe_vertical</span></div>
-            <div class="axis-row"><span class="axis-label">RX (Rocker)</span><div class="axis-bar-container"><div class="axis-bar-center"></div><div class="axis-deadzone" id="js2-dz-rx"></div><div class="axis-bar-fill" id="js2-bar-rx"></div></div><span class="axis-value" id="js2-val-rx">0.00</span><span class="axis-action" id="js2-act-rx">v_strafe_longitudinal</span></div>
+            <div class="axis-row"><span class="axis-label">RX (Rocker)</span><div class="axis-bar-container"><div class="axis-bar-center"></div><div class="axis-deadzone" id="js2-dz-rx"></div><div class="axis-bar-fill" id="js2-bar-rx"></div></div><span class="axis-value" id="js2-val-rx">0.00</span><span class="axis-action" id="js2-act-rx">v_roll</span></div>
           </div>
         </div>
       </div>
@@ -742,13 +742,13 @@ const SC_ACTIONS = {
       { name: 'v_toggle_yaw_roll_swap', label: 'Toggle Yaw Roll Swap', type: 'button', tier: 'extended' },
       { name: 'v_strafe_up', label: 'Strafe Up', type: 'axis', tier: 'extended', optionGroup: 'flight_move_strafe_vertical' },
       { name: 'v_strafe_down', label: 'Strafe Down', type: 'axis', tier: 'extended', optionGroup: 'flight_move_strafe_vertical' },
-      { name: 'v_strafe_vertical', label: 'Strafe Vertical (Axis)', type: 'axis', tier: 'essential', optionGroup: 'flight_move_strafe_vertical' },
+      { name: 'v_strafe_vertical', label: 'Strafe Up/Down', type: 'axis', tier: 'essential', optionGroup: 'flight_move_strafe_vertical' },
       { name: 'v_strafe_left', label: 'Strafe Left', type: 'axis', tier: 'extended', optionGroup: 'flight_move_strafe_lateral' },
       { name: 'v_strafe_right', label: 'Strafe Right', type: 'axis', tier: 'extended', optionGroup: 'flight_move_strafe_lateral' },
-      { name: 'v_strafe_lateral', label: 'Strafe Lateral (Axis)', type: 'axis', tier: 'essential', optionGroup: 'flight_move_strafe_lateral' },
+      { name: 'v_strafe_lateral', label: 'Strafe Left/Right', type: 'axis', tier: 'essential', optionGroup: 'flight_move_strafe_lateral' },
       { name: 'v_strafe_forward', label: 'Strafe Forward', type: 'axis', tier: 'extended', optionGroup: 'flight_strafe_forward' },
       { name: 'v_strafe_back', label: 'Strafe Back', type: 'axis', tier: 'extended', optionGroup: 'flight_strafe_backward' },
-      { name: 'v_strafe_longitudinal', label: 'Strafe Longitudinal (Axis)', type: 'axis', tier: 'essential', optionGroup: 'flight_strafe_longitudinal' },
+      { name: 'v_strafe_longitudinal', label: 'Throttle (Fwd/Back)', type: 'axis', tier: 'essential', optionGroup: 'flight_strafe_longitudinal' },
       { name: 'v_strafe_longitudinal_invert', label: 'Strafe Longitudinal Invert', type: 'button', tier: 'extended' },
       { name: 'v_ifcs_throttle_swap_mode', label: 'Ifcs Throttle Swap Mode', type: 'button', tier: 'extended' },
       { name: 'v_ifcs_throttle_set_sticky', label: 'Ifcs Throttle Set Sticky', type: 'button', tier: 'extended' },
@@ -1302,7 +1302,7 @@ const SC_ACTIONS = {
 // BINDING STATE
 // ==============================================================
 let bindings = {}; // { 'v_pitch': 'js1_y', ... }
-let axisInversions = {}; // { 'v_throttle_abs': true, ... }
+let axisInversions = {}; // { 'v_strafe_longitudinal': true, ... }
 let listeningAction = null; // action name currently waiting for input
 let baselineAxes = { js1: null, js2: null }; // snapshot axes at listen start
 
