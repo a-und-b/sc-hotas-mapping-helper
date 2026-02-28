@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SC HOTAS Tool — Test &amp; Bind</title>
+<style>
+  :root {
+    --bg: #0a0e17;
+    --surface: #111827;
+    --border: #1e293b;
+    --text: #e2e8f0;
+    --dim: #64748b;
+    --accent: #38bdf8;
+    --accent2: #f97316;
+    --active: #22d3ee;
+    --danger: #ef4444;
+    --success: #22c55e;
+    --glow: rgba(56, 189, 248, 0.3);
+    --warning: #eab308;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    min-height: 100vh; overflow-x: hidden;
+  }
+
+  /* ---- Header ---- */
+  header {
+    text-align: center; padding: 1.2rem 1rem 0.8rem;
+    border-bottom: 1px solid var(--border);
+    background: linear-gradient(180deg, rgba(56,189,248,0.05) 0%, transparent 100%);
+  }
+  header h1 { font-size: 1.4rem; font-weight: 600; letter-spacing: 0.05em; color: var(--accent); }
+  header p  { font-size: 0.8rem; color: var(--dim); margin-top: 0.2rem; }
+
+  /* ---- Mode tabs ---- */
+  .mode-tabs {
+    display: flex; justify-content: center; gap: 0;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+  }
+  .mode-tab {
+    padding: 0.7rem 2rem; font-size: 0.85rem; font-weight: 500;
+    cursor: pointer; border: none; background: none; color: var(--dim);
+    border-bottom: 2px solid transparent; transition: all 0.2s;
+  }
+  .mode-tab:hover { color: var(--text); }
+  .mode-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ---- Connection bar ---- */
+  #connection-status {
+    display: flex; justify-content: center; gap: 1.5rem;
+    padding: 0.6rem; background: var(--surface);
+    border-bottom: 1px solid var(--border); flex-wrap: wrap;
+  }
+  .device-status { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8rem; }
+  .status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--danger); transition: background 0.3s;
+  }
+  .status-dot.connected { background: var(--success); box-shadow: 0 0 6px rgba(34,197,94,0.5); }
+
+  /* ---- Shared panels ---- */
+  .device-panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+  }
+  .device-panel h2 {
+    font-size: 0.95rem; padding: 0.75rem 1rem;
+    background: linear-gradient(90deg, rgba(56,189,248,0.1), transparent);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .device-panel h2 .tag {
+    font-size: 0.65rem; background: var(--accent); color: var(--bg);
+    padding: 0.1rem 0.4rem; border-radius: 3px; font-weight: 700;
+  }
+  .device-content { padding: 1rem; }
+  .device-select {
+    padding: 0.6rem 1rem; background: rgba(249,115,22,0.05);
+    border-bottom: 1px solid var(--border); font-size: 0.8rem;
+  }
+  .device-select label { color: var(--dim); margin-right: 0.5rem; }
+  .device-select select {
+    background: var(--bg); color: var(--text);
+    border: 1px solid var(--border); border-radius: 4px;
+    padding: 0.25rem 0.5rem; font-size: 0.75rem;
+  }
+
+  .no-gamepad-msg {
+    text-align: center; padding: 3rem 1rem; color: var(--dim);
+    font-size: 0.95rem; line-height: 1.8;
+  }
+  .no-gamepad-msg strong { color: var(--accent); font-weight: 600; }
+
+  /* ---- Test mode (original) ---- */
+  .main-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;
+    padding: 1rem; max-width: 1400px; margin: 0 auto;
+  }
+  @media (max-width: 900px) { .main-grid { grid-template-columns: 1fr; } }
+
+  .axes-section h3, .buttons-section h3 {
+    font-size: 0.75rem; text-transform: uppercase;
+    letter-spacing: 0.1em; color: var(--dim); margin-bottom: 0.75rem;
+  }
+  .axis-row {
+    display: flex; align-items: center; gap: 0.75rem;
+    margin-bottom: 0.6rem; font-size: 0.8rem;
+  }
+  .axis-label { width: 90px; text-align: right; color: var(--dim); font-size: 0.75rem; flex-shrink: 0; }
+  .axis-bar-container {
+    flex: 1; height: 20px; background: rgba(30,41,59,0.8);
+    border-radius: 4px; position: relative; overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .axis-bar-center { position: absolute; left: 50%; top: 0; bottom: 0; width: 1px; background: var(--dim); opacity: 0.4; }
+  .axis-bar-fill {
+    position: absolute; top: 2px; bottom: 2px; background: var(--accent);
+    border-radius: 2px; transition: left 0.03s, width 0.03s, background 0.1s;
+    box-shadow: 0 0 8px var(--glow);
+  }
+  .axis-bar-fill.negative { background: var(--accent2); box-shadow: 0 0 8px rgba(249,115,22,0.3); }
+  .axis-bar-fill.throttle { left: 0 !important; background: linear-gradient(90deg, var(--success), var(--accent)); }
+  .axis-deadzone {
+    position: absolute; top: 0; bottom: 0;
+    background: rgba(239,68,68,0.1);
+    border-left: 1px dashed rgba(239,68,68,0.3);
+    border-right: 1px dashed rgba(239,68,68,0.3);
+  }
+  .axis-value { width: 50px; text-align: right; font-family: 'Courier New', monospace; font-size: 0.7rem; color: var(--dim); flex-shrink: 0; }
+  .axis-action { width: 160px; font-size: 0.7rem; color: var(--active); flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .axis-action.active { color: var(--accent2); font-weight: 600; }
+
+  .buttons-section { margin-top: 1.25rem; }
+  .buttons-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.4rem; }
+  .btn-item {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.4rem 0.6rem; border-radius: 6px;
+    background: rgba(30,41,59,0.4); border: 1px solid transparent;
+    transition: all 0.1s; font-size: 0.75rem;
+  }
+  .btn-item.active { background: rgba(56,189,248,0.15); border-color: var(--accent); box-shadow: 0 0 12px var(--glow); }
+  .btn-indicator {
+    width: 24px; height: 24px; border-radius: 50%;
+    background: rgba(30,41,59,0.8); border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.6rem; font-weight: 700; color: var(--dim);
+    flex-shrink: 0; transition: all 0.1s;
+  }
+  .btn-item.active .btn-indicator { background: var(--accent); border-color: var(--accent); color: var(--bg); box-shadow: 0 0 10px var(--glow); }
+  .btn-action { color: var(--dim); transition: color 0.1s; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .btn-item.active .btn-action { color: var(--text); font-weight: 500; }
+
+  .hat-section { margin-top: 1.25rem; }
+  .hat-container { display: flex; align-items: center; gap: 2rem; flex-wrap: wrap; }
+  .hat-visual { width: 120px; height: 120px; position: relative; flex-shrink: 0; }
+  .hat-center {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--border); border: 2px solid var(--dim);
+  }
+  .hat-dir {
+    position: absolute; width: 36px; height: 36px; border-radius: 6px;
+    background: rgba(30,41,59,0.8); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.6rem; color: var(--dim); transition: all 0.1s;
+  }
+  .hat-dir.active { background: var(--accent); border-color: var(--accent); color: var(--bg); font-weight: 700; box-shadow: 0 0 12px var(--glow); }
+  .hat-dir.up { top: 4px; left: 50%; transform: translateX(-50%); }
+  .hat-dir.down { bottom: 4px; left: 50%; transform: translateX(-50%); }
+  .hat-dir.left { left: 4px; top: 50%; transform: translateY(-50%); }
+  .hat-dir.right { right: 4px; top: 50%; transform: translateY(-50%); }
+  .hat-labels { font-size: 0.75rem; line-height: 1.8; }
+  .hat-labels .hat-label-row { display: flex; align-items: center; gap: 0.5rem; }
+  .hat-labels .dir-tag { display: inline-block; width: 16px; font-size: 0.65rem; color: var(--dim); text-align: center; }
+  .hat-labels .action-name { color: var(--active); }
+  .hat-labels .hat-label-row.active .action-name { color: var(--accent2); font-weight: 600; }
+
+  .action-log h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--dim); margin-bottom: 0.5rem; }
+  .log-entries { max-height: 120px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 0.7rem; line-height: 1.6; }
+  .log-entries::-webkit-scrollbar { width: 4px; }
+  .log-entries::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .log-entry { color: var(--dim); padding: 0.1rem 0; }
+  .log-entry .log-input { color: var(--accent); }
+  .log-entry .log-action { color: var(--accent2); }
+  .log-entry .log-time { color: var(--border); }
+
+  .crosshair-section { display: flex; gap: 1.5rem; align-items: flex-start; flex-wrap: wrap; margin-bottom: 1rem; }
+  .crosshair-container {
+    position: relative; width: 160px; height: 160px;
+    background: rgba(30,41,59,0.5); border: 1px solid var(--border);
+    border-radius: 8px; flex-shrink: 0;
+  }
+  .crosshair-label { position: absolute; top: -18px; left: 0; font-size: 0.65rem; color: var(--dim); text-transform: uppercase; letter-spacing: 0.05em; }
+  .crosshair-hline, .crosshair-vline { position: absolute; background: var(--border); opacity: 0.3; }
+  .crosshair-hline { left: 0; right: 0; top: 50%; height: 1px; }
+  .crosshair-vline { top: 0; bottom: 0; left: 50%; width: 1px; }
+  .crosshair-dot {
+    position: absolute; width: 12px; height: 12px; border-radius: 50%;
+    background: var(--accent); border: 2px solid white;
+    box-shadow: 0 0 10px var(--glow); transform: translate(-50%,-50%);
+    transition: left 0.03s, top 0.03s; left: 50%; top: 50%;
+  }
+  .crosshair-axis-labels { position: absolute; font-size: 0.55rem; color: var(--dim); }
+  .crosshair-axis-labels.top { top: 2px; left: 50%; transform: translateX(-50%); }
+  .crosshair-axis-labels.bottom { bottom: 2px; left: 50%; transform: translateX(-50%); }
+  .crosshair-axis-labels.left-label { left: 4px; top: 50%; transform: translateY(-50%); }
+  .crosshair-axis-labels.right-label { right: 4px; top: 50%; transform: translateY(-50%); }
+
+  footer { text-align: center; padding: 1rem; font-size: 0.7rem; color: var(--border); border-top: 1px solid var(--border); margin-top: 1rem; }
+
+  /* ===========================================================
+     BIND MODE
+     =========================================================== */
+  .bind-container {
+    max-width: 1400px; margin: 0 auto; padding: 1rem;
+    display: grid; grid-template-columns: 1fr 340px; gap: 1rem;
+  }
+  @media (max-width: 1000px) { .bind-container { grid-template-columns: 1fr; } }
+
+  /* Toolbar */
+  .bind-toolbar {
+    display: flex; gap: 0.5rem; padding: 0.75rem 1rem;
+    background: var(--surface); border-bottom: 1px solid var(--border);
+    flex-wrap: wrap; align-items: center; justify-content: center;
+  }
+  .bind-toolbar button, .bind-toolbar label {
+    font-size: 0.78rem; padding: 0.4rem 0.9rem; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--bg); color: var(--text);
+    cursor: pointer; transition: all 0.15s; display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .bind-toolbar button:hover { border-color: var(--accent); color: var(--accent); }
+  .bind-toolbar button.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+  .bind-toolbar button.primary:hover { background: #2da8e0; }
+  .bind-toolbar button.danger { border-color: var(--danger); color: var(--danger); }
+  .bind-toolbar button.danger:hover { background: rgba(239,68,68,0.15); }
+  .bind-toolbar .separator { width: 1px; height: 24px; background: var(--border); margin: 0 0.25rem; }
+  .bind-toolbar input[type="file"] { display: none; }
+  .bind-toolbar .profile-name {
+    background: var(--bg); color: var(--text); border: 1px solid var(--border);
+    border-radius: 4px; padding: 0.35rem 0.6rem; font-size: 0.78rem; width: 200px;
+  }
+  .bind-toolbar .profile-name:focus { border-color: var(--accent); outline: none; }
+  .bind-toolbar .toolbar-label { font-size: 0.7rem; color: var(--dim); padding: 0; border: none; background: none; cursor: default; }
+
+  /* Category accordion */
+  .bind-categories { display: flex; flex-direction: column; gap: 0.5rem; }
+  .bind-category {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; overflow: hidden;
+  }
+  .bind-cat-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.6rem 1rem; cursor: pointer; user-select: none;
+    background: linear-gradient(90deg, rgba(56,189,248,0.06), transparent);
+    border-bottom: 1px solid transparent; transition: all 0.15s;
+  }
+  .bind-cat-header:hover { background: rgba(56,189,248,0.1); }
+  .bind-cat-header.open { border-bottom-color: var(--border); }
+  .bind-cat-header .cat-name { font-size: 0.82rem; font-weight: 600; }
+  .bind-cat-header .cat-count {
+    font-size: 0.65rem; color: var(--dim);
+    background: rgba(30,41,59,0.8); padding: 0.15rem 0.5rem; border-radius: 10px;
+  }
+  .bind-cat-header .cat-arrow {
+    font-size: 0.7rem; color: var(--dim); transition: transform 0.2s;
+  }
+  .bind-cat-header.open .cat-arrow { transform: rotate(90deg); }
+  .bind-cat-body { display: none; }
+  .bind-cat-body.open { display: block; }
+
+  /* Action row */
+  .bind-action-row {
+    display: flex; align-items: center; gap: 0.5rem;
+    padding: 0.45rem 1rem; border-bottom: 1px solid rgba(30,41,59,0.5);
+    font-size: 0.78rem; transition: background 0.1s;
+  }
+  .bind-action-row:last-child { border-bottom: none; }
+  .bind-action-row:hover { background: rgba(56,189,248,0.04); }
+  .bind-action-row.listening {
+    background: rgba(249,115,22,0.1); border-color: var(--accent2);
+  }
+  .bind-action-row .action-name-col {
+    flex: 1; min-width: 0;
+  }
+  .bind-action-row .action-label { color: var(--text); font-weight: 500; }
+  .bind-action-row .action-sc-name { font-size: 0.65rem; color: var(--dim); font-family: 'Courier New', monospace; }
+  .bind-action-row .binding-col {
+    width: 140px; flex-shrink: 0; text-align: center;
+  }
+  .bind-action-row .binding-value {
+    font-family: 'Courier New', monospace; font-size: 0.72rem;
+    color: var(--accent); padding: 0.2rem 0.5rem;
+    background: rgba(56,189,248,0.08); border-radius: 4px;
+    display: inline-block; min-width: 60px;
+  }
+  .bind-action-row .binding-value.empty { color: var(--dim); background: none; }
+  .bind-action-row .binding-value.listening-indicator {
+    color: var(--accent2); background: rgba(249,115,22,0.15);
+    animation: pulse 1s infinite;
+  }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+  .bind-action-row .action-buttons {
+    display: flex; gap: 0.3rem; flex-shrink: 0;
+  }
+  .bind-action-row .action-buttons button {
+    font-size: 0.65rem; padding: 0.25rem 0.5rem; border-radius: 4px;
+    border: 1px solid var(--border); background: var(--bg); color: var(--dim);
+    cursor: pointer; transition: all 0.1s;
+  }
+  .bind-action-row .action-buttons button:hover { color: var(--text); border-color: var(--accent); }
+  .bind-action-row .action-buttons button.bind-btn { color: var(--accent); border-color: rgba(56,189,248,0.3); }
+  .bind-action-row .action-buttons button.bind-btn:hover { background: rgba(56,189,248,0.1); }
+  .bind-action-row .action-buttons button.clear-btn { color: var(--danger); border-color: rgba(239,68,68,0.2); }
+  .bind-action-row .action-buttons button.clear-btn:hover { background: rgba(239,68,68,0.1); }
+  .bind-action-row.listening .action-buttons button.bind-btn {
+    background: var(--accent2); color: var(--bg); border-color: var(--accent2);
+  }
+
+  /* Right sidebar: live input monitor */
+  .bind-sidebar { display: flex; flex-direction: column; gap: 0.75rem; }
+  .live-monitor {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem; position: sticky; top: 1rem;
+  }
+  .live-monitor h3 {
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--dim); margin-bottom: 0.75rem;
+  }
+  .live-input-display {
+    font-family: 'Courier New', monospace; font-size: 1.1rem;
+    color: var(--accent); text-align: center; padding: 1rem;
+    background: rgba(30,41,59,0.5); border-radius: 8px;
+    min-height: 50px; display: flex; align-items: center;
+    justify-content: center; margin-bottom: 0.75rem;
+    border: 1px solid var(--border);
+  }
+  .live-input-display.has-input { color: var(--accent2); border-color: var(--accent2); background: rgba(249,115,22,0.05); }
+  .mini-axis-row {
+    display: flex; align-items: center; gap: 0.5rem;
+    margin-bottom: 0.35rem; font-size: 0.7rem;
+  }
+  .mini-axis-row .mini-label { width: 70px; text-align: right; color: var(--dim); flex-shrink: 0; }
+  .mini-axis-row .mini-bar {
+    flex: 1; height: 10px; background: rgba(30,41,59,0.8);
+    border-radius: 3px; position: relative; overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .mini-axis-row .mini-bar-fill {
+    position: absolute; top: 1px; bottom: 1px; background: var(--accent);
+    border-radius: 2px; transition: left 0.03s, width 0.03s;
+  }
+  .mini-axis-row .mini-val { width: 40px; text-align: right; font-family: 'Courier New', monospace; font-size: 0.6rem; color: var(--dim); }
+  .mini-buttons-grid {
+    display: flex; flex-wrap: wrap; gap: 3px; margin-top: 0.5rem;
+  }
+  .mini-btn {
+    width: 22px; height: 22px; border-radius: 4px; font-size: 0.55rem;
+    background: rgba(30,41,59,0.6); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--dim); transition: all 0.05s;
+  }
+  .mini-btn.active { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  .mini-device-label { font-size: 0.7rem; color: var(--dim); margin: 0.6rem 0 0.3rem; font-weight: 600; }
+
+  /* Export modal */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7); display: flex; align-items: center;
+    justify-content: center; z-index: 1000; backdrop-filter: blur(4px);
+  }
+  .modal-overlay.hidden { display: none; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; max-width: 700px; width: 90%; max-height: 80vh;
+    overflow: auto; padding: 1.5rem;
+  }
+  .modal h2 { font-size: 1rem; margin-bottom: 1rem; color: var(--accent); }
+  .modal pre {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 1rem; font-size: 0.7rem;
+    overflow: auto; max-height: 400px; line-height: 1.5;
+    color: var(--dim);
+  }
+  .modal .modal-actions { display: flex; gap: 0.5rem; margin-top: 1rem; justify-content: flex-end; }
+  .modal .modal-actions button {
+    padding: 0.5rem 1.2rem; border-radius: 6px; font-size: 0.8rem;
+    border: 1px solid var(--border); background: var(--bg); color: var(--text);
+    cursor: pointer; transition: all 0.15s;
+  }
+  .modal .modal-actions button.primary { background: var(--accent); color: var(--bg); border-color: var(--accent); font-weight: 600; }
+  .modal .modal-actions button:hover { opacity: 0.85; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+    background: var(--success); color: var(--bg); padding: 0.6rem 1.5rem;
+    border-radius: 8px; font-size: 0.8rem; font-weight: 600;
+    z-index: 1001; opacity: 0; transition: opacity 0.3s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>SC HOTAS Tool</h1>
+  <p>Star Citizen &bull; Test your inputs &bull; Create custom binding profiles</p>
+</header>
+
+<!-- Mode Tabs -->
+<div class="mode-tabs">
+  <button class="mode-tab active" data-mode="test" onclick="switchMode('test')">Test Mode</button>
+  <button class="mode-tab" data-mode="bind" onclick="switchMode('bind')">Bind Mode</button>
+</div>
+
+<div id="connection-status">
+  <div class="device-status">
+    <div class="status-dot" id="js1-status"></div>
+    <span id="js1-name">JS1 (Joystick): Not connected</span>
+  </div>
+  <div class="device-status">
+    <div class="status-dot" id="js2-status"></div>
+    <span id="js2-name">JS2 (Throttle): Not connected</span>
+  </div>
+</div>
+
+<div id="no-gamepad" class="no-gamepad-msg">
+  <p>No gamepads detected yet.</p>
+  <p><strong>Press any button</strong> on your T16000m or TWCS Throttle to connect.</p>
+  <p style="margin-top:1rem; font-size:0.8rem;">
+    Make sure your browser supports the Gamepad API (Firefox/Chrome).<br>
+    On Linux, your devices should appear via <code>/dev/input/js*</code>.
+  </p>
+</div>
+
+<!-- ===== TEST MODE (original, unchanged) ===== -->
+<div id="test-mode" style="display:none;">
+<div id="main-content" class="main-grid">
+  <div class="device-panel">
+    <h2>T.16000M Joystick <span class="tag">JS1</span></h2>
+    <div class="device-select">
+      <label for="js1-select">Gamepad:</label>
+      <select id="js1-select"><option value="-1">Auto-detect</option></select>
+    </div>
+    <div class="device-content">
+      <div class="crosshair-section">
+        <div style="position:relative; padding-top: 20px;">
+          <div class="crosshair-container">
+            <span class="crosshair-label">Pitch / Roll</span>
+            <div class="crosshair-hline"></div><div class="crosshair-vline"></div>
+            <div class="crosshair-dot" id="js1-dot-xy"></div>
+            <span class="crosshair-axis-labels top">Pitch&uarr;</span>
+            <span class="crosshair-axis-labels bottom">Pitch&darr;</span>
+            <span class="crosshair-axis-labels left-label">Roll&larr;</span>
+            <span class="crosshair-axis-labels right-label">Roll&rarr;</span>
+          </div>
+        </div>
+        <div style="flex:1; min-width:200px;">
+          <div class="axes-section">
+            <h3>Axes</h3>
+            <div class="axis-row"><span class="axis-label">X (Roll)</span><div class="axis-bar-container"><div class="axis-bar-center"></div><div class="axis-deadzone" id="js1-dz-x"></div><div class="axis-bar-fill" id="js1-bar-x"></div></div><span class="axis-value" id="js1-val-x">0.00</span><span class="axis-action" id="js1-act-x">v_roll</span></div>
+            <div class="axis-row"><span class="axis-label">Y (Pitch)</span><div class="axis-bar-container"><div class="axis-bar-center"></div><div class="axis-deadzone" id="js1-dz-y"></div><div class="axis-bar-fill" id="js1-bar-y"></div></div><span class="axis-value" id="js1-val-y">0.00</span><span class="axis-action" id="js1-act-y">v_pitch</span></div>
+            <div class="axis-row"><span class="axis-label">Z (Yaw)</span><div class="axis-bar-container"><div class="axis-bar-center"></div><div class="axis-deadzone" id="js1-dz-z"></div><div class="axis-bar-fill" id="js1-bar-z"></div></div><span class="axis-value" id="js1-val-z">0.00</span><span class="axis-action" id="js1-act-z">v_yaw</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="hat-section">
+        <h3 style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--dim); margin-bottom:0.75rem;">Hat Switch</h3>
+        <div class="hat-container">
+          <div class="hat-visual">
+            <div class="hat-dir up" id="js1-hat-up">&blacktriangle;</div>
+            <div class="hat-dir down" id="js1-hat-down">&blacktriangledown;</div>
+            <div class="hat-dir left" id="js1-hat-left">&#9664;</div>
+            <div class="hat-dir right" id="js1-hat-right">&#9654;</div>
+            <div class="hat-center"></div>
+          </div>
+          <div class="hat-labels">
+            <div class="hat-label-row" id="js1-hat-label-up"><span class="dir-tag">&blacktriangle;</span> <span class="action-name">Nearest Hostile</span></div>
+            <div class="hat-label-row" id="js1-hat-label-right"><span class="dir-tag">&#9654;</span> <span class="action-name">Cycle Hostile &rarr;</span></div>
+            <div class="hat-label-row" id="js1-hat-label-down"><span class="dir-tag">&blacktriangledown;</span> <span class="action-name">Cycle Friendly &rarr;</span></div>
+            <div class="hat-label-row" id="js1-hat-label-left"><span class="dir-tag">&#9664;</span> <span class="action-name">Cycle Hostile &larr;</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="buttons-section"><h3>Buttons</h3><div class="buttons-grid" id="js1-buttons"></div></div>
+    </div>
+  </div>
+  <div class="device-panel">
+    <h2>TWCS Throttle <span class="tag">JS2</span></h2>
+    <div class="device-select">
+      <label for="js2-select">Gamepad:</label>
+      <select id="js2-select"><option value="-1">Auto-detect</option></select>
+    </div>
+    <div class="device-content">
+      <div class="crosshair-section">
+        <div style="position:relative; padding-top: 20px;">
+          <div class="crosshair-container">
+            <span class="crosshair-label">Ministick (Strafe)</span>
+            <div class="crosshair-hline"></div><div class="crosshair-vline"></div>
+            <div class="crosshair-dot" id="js2-dot-xy"></div>
+            <span class="crosshair-axis-labels top">Up</span><span class="crosshair-axis-labels bottom">Down</span>
+            <span class="crosshair-axis-labels left-label">Left</span><span class="crosshair-axis-labels right-label">Right</span>
+          </div>
+        </div>
+        <div style="flex:1; min-width:200px;">
+          <div class="axes-section">
+            <h3>Axes</h3>
+            <div class="axis-row"><span class="axis-label">Z (Throttle)</span><div class="axis-bar-container"><div class="axis-deadzone" id="js2-dz-z"></div><div class="axis-bar-fill throttle" id="js2-bar-z"></div></div><span class="axis-value" id="js2-val-z">0.00</span><span class="axis-action" id="js2-act-z">v_throttle_abs</span></div>
+            <div class="axis-row"><span class="axis-label">X (Strafe L/R)</span><div class="axis-bar-container"><div class="axis-bar-center"></div><div class="axis-deadzone" id="js2-dz-x"></div><div class="axis-bar-fill" id="js2-bar-x"></div></div><span class="axis-value" id="js2-val-x">0.00</span><span class="axis-action" id="js2-act-x">v_strafe_lateral</span></div>
+            <div class="axis-row"><span class="axis-label">Y (Strafe U/D)</span><div class="axis-bar-container"><div class="axis-bar-center"></div><div class="axis-deadzone" id="js2-dz-y"></div><div class="axis-bar-fill" id="js2-bar-y"></div></div><span class="axis-value" id="js2-val-y">0.00</span><span class="axis-action" id="js2-act-y">v_strafe_vertical</span></div>
+            <div class="axis-row"><span class="axis-label">RX (Rocker)</span><div class="axis-bar-container"><div class="axis-bar-center"></div><div class="axis-deadzone" id="js2-dz-rx"></div><div class="axis-bar-fill" id="js2-bar-rx"></div></div><span class="axis-value" id="js2-val-rx">0.00</span><span class="axis-action" id="js2-act-rx">v_strafe_longitudinal</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="hat-section">
+        <h3 style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--dim); margin-bottom:0.75rem;">Hat Switch &mdash; Shield Mgmt</h3>
+        <div class="hat-container">
+          <div class="hat-visual">
+            <div class="hat-dir up" id="js2-hat-up">&blacktriangle;</div>
+            <div class="hat-dir down" id="js2-hat-down">&blacktriangledown;</div>
+            <div class="hat-dir left" id="js2-hat-left">&#9664;</div>
+            <div class="hat-dir right" id="js2-hat-right">&#9654;</div>
+            <div class="hat-center"></div>
+          </div>
+          <div class="hat-labels">
+            <div class="hat-label-row" id="js2-hat-label-up"><span class="dir-tag">&blacktriangle;</span> <span class="action-name">Shield &rarr; Front</span></div>
+            <div class="hat-label-row" id="js2-hat-label-right"><span class="dir-tag">&#9654;</span> <span class="action-name">Shield &rarr; Right</span></div>
+            <div class="hat-label-row" id="js2-hat-label-down"><span class="dir-tag">&blacktriangledown;</span> <span class="action-name">Shield &rarr; Rear</span></div>
+            <div class="hat-label-row" id="js2-hat-label-left"><span class="dir-tag">&#9664;</span> <span class="action-name">Shield &rarr; Left</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="buttons-section"><h3>Buttons</h3><div class="buttons-grid" id="js2-buttons"></div></div>
+    </div>
+  </div>
+</div>
+<div id="log-panel" style="max-width:1400px; margin:0 auto; padding:0 1rem 1rem;">
+  <div class="device-panel"><div class="device-content"><div class="action-log"><h3>Live Action Log</h3><div class="log-entries" id="action-log"></div></div></div></div>
+</div>
+</div>
+
+<!-- ===== BIND MODE ===== -->
+<div id="bind-mode" style="display:none;">
+  <div class="bind-toolbar">
+    <span class="toolbar-label" style="color:var(--dim); font-size:0.75rem;">Profile:</span>
+    <input type="text" class="profile-name" id="profile-name-input" value="T16000m_HOTAS_Custom" placeholder="Profile name">
+    <div class="separator"></div>
+    <label class="bind-toolbar" style="margin:0;">
+      <input type="file" id="import-xml-input" accept=".xml">
+      &#128194; Import XML
+    </label>
+    <button onclick="exportXML()">&#128190; Export XML</button>
+    <button class="primary" onclick="downloadXML()">&#11015; Download XML</button>
+    <div class="separator"></div>
+    <button class="danger" onclick="clearAllBindings()">&#128465; Clear All</button>
+  </div>
+  <div class="bind-container">
+    <div class="bind-categories" id="bind-categories"></div>
+    <div class="bind-sidebar">
+      <div class="live-monitor">
+        <h3>Live Input</h3>
+        <div class="live-input-display" id="live-input-display">Waiting for input...</div>
+        <div id="bind-mini-js1">
+          <div class="mini-device-label">JS1 &mdash; Joystick</div>
+          <div id="bind-mini-js1-axes"></div>
+          <div class="mini-buttons-grid" id="bind-mini-js1-btns"></div>
+        </div>
+        <div id="bind-mini-js2">
+          <div class="mini-device-label">JS2 &mdash; Throttle</div>
+          <div id="bind-mini-js2-axes"></div>
+          <div class="mini-buttons-grid" id="bind-mini-js2-btns"></div>
+        </div>
+      </div>
+      <div class="live-monitor">
+        <h3>Stats</h3>
+        <div style="font-size:0.8rem; color:var(--dim); line-height:1.8;">
+          <div>Bound actions: <span id="stats-bound" style="color:var(--accent);">0</span></div>
+          <div>Unbound: <span id="stats-unbound" style="color:var(--dim);">0</span></div>
+          <div>Conflicts: <span id="stats-conflicts" style="color:var(--danger);">0</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Export modal -->
+<div class="modal-overlay hidden" id="export-modal">
+  <div class="modal">
+    <h2>Export Star Citizen Profile</h2>
+    <pre id="export-preview"></pre>
+    <div class="modal-actions">
+      <button onclick="closeExportModal()">Close</button>
+      <button onclick="copyXMLToClipboard()">Copy to Clipboard</button>
+      <button class="primary" onclick="downloadXML()">Download .xml</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<footer>SC HOTAS Tool &bull; Gamepad API &bull; No data leaves your machine &bull; Works with any joystick/throttle</footer>
+
+<script>
+// ==============================================================
+// SC ACTIONS DATABASE
+// ==============================================================
+const SC_ACTIONS = {
+  spaceship_movement: {
+    label: 'Flight Movement',
+    actions: [
+      { name: 'v_pitch', label: 'Pitch', type: 'axis' },
+      { name: 'v_roll', label: 'Roll', type: 'axis' },
+      { name: 'v_yaw', label: 'Yaw', type: 'axis' },
+      { name: 'v_throttle_abs', label: 'Throttle (Absolute)', type: 'axis' },
+      { name: 'v_strafe_lateral', label: 'Strafe Left / Right', type: 'axis' },
+      { name: 'v_strafe_vertical', label: 'Strafe Up / Down', type: 'axis' },
+      { name: 'v_strafe_longitudinal', label: 'Strafe Forward / Back', type: 'axis' },
+      { name: 'v_boost', label: 'Boost', type: 'button' },
+      { name: 'v_afterburner', label: 'Afterburner', type: 'button' },
+      { name: 'v_brake', label: 'Space Brake', type: 'button' },
+      { name: 'v_ifcs_toggle_vector_decoupling', label: 'Decoupled Toggle', type: 'button' },
+      { name: 'v_toggle_landing_system', label: 'Landing Gear Toggle', type: 'button' },
+      { name: 'v_toggle_qdrive_engagement', label: 'Quantum Drive Engage', type: 'button' },
+      { name: 'v_ifcs_toggle_esp', label: 'ESP Toggle', type: 'button' },
+      { name: 'v_ifcs_toggle_comstab', label: 'COMSTAB Toggle', type: 'button' },
+      { name: 'v_target_match_vel', label: 'Match Target Velocity', type: 'button' },
+      { name: 'v_ifcs_toggle_gforce_safety', label: 'G-Force Safety Toggle', type: 'button' },
+      { name: 'v_ifcs_toggle_safeties', label: 'All Safeties Toggle', type: 'button' },
+      { name: 'v_throttle_toggle_minmax', label: 'Throttle Min/Max Toggle', type: 'button' },
+      { name: 'v_decoupled_pitch', label: 'Decoupled Pitch', type: 'axis' },
+      { name: 'v_decoupled_roll', label: 'Decoupled Roll', type: 'axis' },
+      { name: 'v_decoupled_yaw', label: 'Decoupled Yaw', type: 'axis' },
+      { name: 'v_decoupled_strafe_lateral', label: 'Decoupled Strafe L/R', type: 'axis' },
+      { name: 'v_decoupled_strafe_vertical', label: 'Decoupled Strafe U/D', type: 'axis' },
+      { name: 'v_decoupled_strafe_longitudinal', label: 'Decoupled Strafe F/B', type: 'axis' },
+      { name: 'v_decoupled_brake', label: 'Decoupled Brake', type: 'button' },
+    ]
+  },
+  spaceship_quantum: {
+    label: 'Quantum Travel',
+    actions: [
+      { name: 'v_toggle_qdrive_system', label: 'Quantum Drive System', type: 'button' },
+    ]
+  },
+  spaceship_targeting: {
+    label: 'Targeting & Scanning',
+    actions: [
+      { name: 'v_target_nearest_hostile', label: 'Nearest Hostile', type: 'button' },
+      { name: 'v_target_cycle_hostile_fwd', label: 'Cycle Hostile Forward', type: 'button' },
+      { name: 'v_target_cycle_hostile_back', label: 'Cycle Hostile Back', type: 'button' },
+      { name: 'v_target_cycle_friendly_fwd', label: 'Cycle Friendly Forward', type: 'button' },
+      { name: 'v_target_cycle_friendly_back', label: 'Cycle Friendly Back', type: 'button' },
+      { name: 'v_target_toggle_pinned_focused', label: 'Pin / Unpin Target', type: 'button' },
+      { name: 'v_toggle_weapon_gimbal_lock', label: 'Gimbal Lock Toggle', type: 'button' },
+      { name: 'v_target_reticle_focus', label: 'Reticle Focus', type: 'button' },
+      { name: 'v_target_cycle_reticle_mode', label: 'Cycle Reticle Mode', type: 'button' },
+      { name: 'scan_toggle_mode', label: 'Scanning Mode Toggle', type: 'button' },
+      { name: 'scan_active_ping', label: 'Scan Ping', type: 'button' },
+      { name: 'scan_focus_scan', label: 'Focus Scan', type: 'button' },
+    ]
+  },
+  spaceship_weapons: {
+    label: 'Weapons',
+    actions: [
+      { name: 'v_attack1_group1', label: 'Fire Group 1', type: 'button' },
+      { name: 'v_attack1_group2', label: 'Fire Group 2', type: 'button' },
+      { name: 'v_weapon_cycle_ammo_fwd', label: 'Cycle Ammo Forward', type: 'button' },
+    ]
+  },
+  spaceship_missiles: {
+    label: 'Missiles',
+    actions: [
+      { name: 'v_weapon_arm_missile', label: 'Arm Missile', type: 'button' },
+      { name: 'v_weapon_launch_missile', label: 'Launch Missile', type: 'button' },
+    ]
+  },
+  spaceship_defensive: {
+    label: 'Defensive & Shields',
+    actions: [
+      { name: 'v_weapon_launch_countermeasure', label: 'Launch Countermeasure', type: 'button' },
+      { name: 'v_weapon_cycle_countermeasure_fwd', label: 'Cycle Countermeasure', type: 'button' },
+      { name: 'v_shield_raise_level_forward', label: 'Shield Forward', type: 'button' },
+      { name: 'v_shield_raise_level_back', label: 'Shield Rear', type: 'button' },
+      { name: 'v_shield_raise_level_left', label: 'Shield Left', type: 'button' },
+      { name: 'v_shield_raise_level_right', label: 'Shield Right', type: 'button' },
+      { name: 'v_shield_reset_level', label: 'Shield Reset', type: 'button' },
+    ]
+  },
+  spaceship_power: {
+    label: 'Power Management',
+    actions: [
+      { name: 'v_power_focus_group_1', label: 'Power to Weapons', type: 'button' },
+      { name: 'v_power_focus_group_2', label: 'Power to Shields', type: 'button' },
+      { name: 'v_power_focus_group_3', label: 'Power to Engines', type: 'button' },
+      { name: 'v_power_reset_focus', label: 'Power Reset', type: 'button' },
+      { name: 'v_power_toggle', label: 'Power Toggle', type: 'button' },
+    ]
+  },
+  spaceship_general: {
+    label: 'General Ship',
+    actions: [
+      { name: 'v_flightready', label: 'Flight Ready', type: 'button' },
+      { name: 'v_toggle_cabin_lights', label: 'Cabin Lights', type: 'button' },
+      { name: 'v_lights', label: 'Ship Lights', type: 'button' },
+      { name: 'v_self_destruct', label: 'Self Destruct', type: 'button' },
+      { name: 'v_eject', label: 'Eject', type: 'button' },
+    ]
+  },
+  spaceship_view: {
+    label: 'View & Camera',
+    actions: [
+      { name: 'v_view_look_behind', label: 'Look Behind', type: 'button' },
+      { name: 'v_view_cycle_fwd', label: 'Cycle View', type: 'button' },
+      { name: 'v_view_zoom_in', label: 'Zoom In', type: 'button' },
+      { name: 'v_view_zoom_out', label: 'Zoom Out', type: 'button' },
+    ]
+  },
+  spaceship_radar: {
+    label: 'Radar',
+    actions: [
+      { name: 'v_radar_toggle_active_or_passive', label: 'Radar Active/Passive', type: 'button' },
+      { name: 'v_radar_cycle_zoom_fwd', label: 'Radar Zoom', type: 'button' },
+    ]
+  },
+  spaceship_mining: {
+    label: 'Mining',
+    actions: [
+      { name: 'v_toggle_mining_mode', label: 'Mining Mode Toggle', type: 'button' },
+      { name: 'v_mining_laser_fire', label: 'Mining Laser Fire', type: 'button' },
+    ]
+  },
+};
+
+// ==============================================================
+// BINDING STATE
+// ==============================================================
+let bindings = {}; // { 'v_pitch': 'js1_y', ... }
+let listeningAction = null; // action name currently waiting for input
+let baselineAxes = { js1: null, js2: null }; // snapshot axes at listen start
+
+// ==============================================================
+// GAMEPAD STATE (shared between modes)
+// ==============================================================
+let gamepads = {};
+let js1Index = -1;
+let js2Index = -1;
+let prevButtonStates = { js1: {}, js2: {} };
+let logEntries = [];
+const MAX_LOG = 50;
+let currentMode = 'test';
+let lastDetectedInput = '';
+
+// ==============================================================
+// TEST MODE MAPS (unchanged from original)
+// ==============================================================
+const JS1_BUTTON_MAP = {
+  0:  { sc: 'button1',  action: 'Fire Group 1',        detail: 'v_attack1_group1' },
+  1:  { sc: 'button2',  action: 'Fire Group 2 / Arm',  detail: 'v_attack1_group2' },
+  2:  { sc: 'button3',  action: 'Launch Missile',       detail: 'v_weapon_launch_missile' },
+  3:  { sc: 'button4',  action: 'Countermeasures',      detail: 'v_weapon_launch_countermeasure' },
+  4:  { sc: 'button5',  action: 'Pin/Unpin Target',     detail: 'v_target_toggle_pinned_focused' },
+  5:  { sc: 'button6',  action: 'Gimbal Lock',          detail: 'v_toggle_weapon_gimbal_lock' },
+  6:  { sc: 'button7',  action: 'Look Behind',          detail: 'v_view_look_behind' },
+  7:  { sc: 'button8',  action: 'Scan Mode Toggle',     detail: 'scan_toggle_mode' },
+  8:  { sc: 'button9',  action: 'Cabin Lights',         detail: 'v_toggle_cabin_lights' },
+  9:  { sc: 'button10', action: 'ESP Toggle',           detail: 'v_ifcs_toggle_esp' },
+  10: { sc: 'button11', action: 'COMSTAB Toggle',       detail: 'v_ifcs_toggle_comstab' },
+  11: { sc: 'button12', action: 'Match Velocity',       detail: 'v_target_match_vel' },
+  12: { sc: 'button13', action: 'Reticle Focus',        detail: 'v_target_reticle_focus' },
+  13: { sc: 'button14', action: 'Scan Ping',            detail: 'scan_active_ping' },
+  14: { sc: 'button15', action: 'Cycle Countermeasure',  detail: 'v_weapon_cycle_countermeasure_fwd' },
+  15: { sc: 'button16', action: 'Cycle View',           detail: 'v_view_cycle_fwd' },
+};
+const JS2_BUTTON_MAP = {
+  0:  { sc: 'button1',  action: 'Boost / Afterburner',  detail: 'v_boost' },
+  1:  { sc: 'button2',  action: 'Space Brake',          detail: 'v_brake' },
+  2:  { sc: 'button3',  action: 'Decoupled Toggle',     detail: 'v_ifcs_toggle_vector_decoupling' },
+  3:  { sc: 'button4',  action: 'Landing Gear',         detail: 'v_toggle_landing_system' },
+  4:  { sc: 'button5',  action: 'Quantum Drive Sys',    detail: 'v_toggle_qdrive_system' },
+  5:  { sc: 'button6',  action: 'Quantum Engage',       detail: 'v_toggle_qdrive_engagement' },
+  6:  { sc: 'button7',  action: 'Flight Ready',         detail: 'v_flightready' },
+  7:  { sc: 'button8',  action: 'Mining Mode',          detail: 'v_toggle_mining_mode' },
+  8:  { sc: 'button9',  action: 'Pwr: Weapons',        detail: 'v_power_focus_group_1' },
+  9:  { sc: 'button10', action: 'Pwr: Shields',        detail: 'v_power_focus_group_2' },
+  10: { sc: 'button11', action: 'Pwr: Engines',        detail: 'v_power_focus_group_3' },
+  11: { sc: 'button12', action: 'Pwr Reset',            detail: 'v_power_reset_focus' },
+  12: { sc: 'button13', action: 'Radar Active/Passive', detail: 'v_radar_toggle_active_or_passive' },
+  13: { sc: 'button14', action: 'Shield Reset',         detail: 'v_shield_reset_level' },
+};
+const JS1_HAT_ACTIONS = { up: 'Nearest Hostile', right: 'Cycle Hostile &rarr;', down: 'Cycle Friendly &rarr;', left: 'Cycle Hostile &larr;' };
+const JS2_HAT_ACTIONS = { up: 'Shield: Front', right: 'Shield: Right', down: 'Shield: Rear', left: 'Shield: Left' };
+
+// ==============================================================
+// MODE SWITCHING
+// ==============================================================
+function switchMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mode-tab').forEach(t => t.classList.toggle('active', t.dataset.mode === mode));
+  document.getElementById('test-mode').style.display = mode === 'test' ? 'block' : 'none';
+  document.getElementById('bind-mode').style.display = mode === 'bind' ? 'block' : 'none';
+
+  const anyGP = Object.keys(gamepads).length > 0;
+  document.getElementById('no-gamepad').style.display = anyGP ? 'none' : 'block';
+  if (mode === 'test' && anyGP) {
+    document.getElementById('test-mode').style.display = 'block';
+  }
+}
+
+// ==============================================================
+// GAMEPAD PLUMBING (shared)
+// ==============================================================
+window.addEventListener('gamepadconnected', (e) => {
+  gamepads[e.gamepad.index] = e.gamepad;
+  updateDeviceSelects();
+  autoAssignDevices();
+  updateConnectionStatus();
+  showMainContent();
+});
+window.addEventListener('gamepaddisconnected', (e) => {
+  delete gamepads[e.gamepad.index];
+  updateDeviceSelects();
+  autoAssignDevices();
+  updateConnectionStatus();
+});
+
+function updateDeviceSelects() {
+  const gps = navigator.getGamepads();
+  for (const selId of ['js1-select', 'js2-select']) {
+    const sel = document.getElementById(selId);
+    if (!sel) continue;
+    const currentVal = sel.value;
+    sel.innerHTML = '<option value="-1">Auto-detect</option>';
+    for (let i = 0; i < gps.length; i++) {
+      if (gps[i]) {
+        const opt = document.createElement('option');
+        opt.value = i;
+        opt.textContent = `[${i}] ${gps[i].id.substring(0, 50)}`;
+        sel.appendChild(opt);
+      }
+    }
+    sel.value = currentVal;
+  }
+}
+
+const js1Sel = document.getElementById('js1-select');
+const js2Sel = document.getElementById('js2-select');
+if (js1Sel) js1Sel.addEventListener('change', (e) => { js1Index = parseInt(e.target.value); updateConnectionStatus(); });
+if (js2Sel) js2Sel.addEventListener('change', (e) => { js2Index = parseInt(e.target.value); updateConnectionStatus(); });
+
+function autoAssignDevices() {
+  const gps = navigator.getGamepads();
+  let ji = -1, ti = -1;
+  for (let i = 0; i < gps.length; i++) {
+    if (!gps[i]) continue;
+    const id = gps[i].id.toLowerCase();
+    if (id.includes('t.16000m') || id.includes('t16000') || id.includes('16000m')) ji = i;
+    else if (id.includes('twcs') || id.includes('throttle')) ti = i;
+  }
+  if (ji === -1 && ti === -1) {
+    const idx = []; for (let i = 0; i < gps.length; i++) { if (gps[i]) idx.push(i); }
+    if (idx.length >= 1) ji = idx[0]; if (idx.length >= 2) ti = idx[1];
+  }
+  if (js1Index === -1 && ji !== -1) document.getElementById('js1-select').value = ji;
+  if (js2Index === -1 && ti !== -1) document.getElementById('js2-select').value = ti;
+}
+
+function getJS(which) {
+  const gps = navigator.getGamepads();
+  const idx = which === 1 ? js1Index : js2Index;
+  if (idx >= 0) return gps[idx] || null;
+  for (let i = 0; i < gps.length; i++) {
+    if (!gps[i]) continue;
+    const id = gps[i].id.toLowerCase();
+    if (which === 1 && (id.includes('t.16000m') || id.includes('t16000') || id.includes('16000m'))) return gps[i];
+    if (which === 2 && (id.includes('twcs') || id.includes('throttle'))) return gps[i];
+  }
+  const js1 = which === 2 ? getJS(1) : null;
+  let fallbackIdx = 0;
+  for (let i = 0; i < gps.length; i++) {
+    if (gps[i]) {
+      if (which === 2 && gps[i] === js1) continue;
+      if (which === 1 && fallbackIdx === 0) return gps[i];
+      if (which === 2) return gps[i];
+      fallbackIdx++;
+    }
+  }
+  return null;
+}
+function getJS1() { return getJS(1); }
+function getJS2() { return getJS(2); }
+
+function updateConnectionStatus() {
+  const js1 = getJS1(), js2 = getJS2();
+  const d1 = document.getElementById('js1-status'), n1 = document.getElementById('js1-name');
+  if (js1) { d1.classList.add('connected'); n1.textContent = `JS1: ${js1.id.substring(0,40)}`; }
+  else { d1.classList.remove('connected'); n1.textContent = 'JS1 (Joystick): Not connected'; }
+  const d2 = document.getElementById('js2-status'), n2 = document.getElementById('js2-name');
+  if (js2) { d2.classList.add('connected'); n2.textContent = `JS2: ${js2.id.substring(0,40)}`; }
+  else { d2.classList.remove('connected'); n2.textContent = 'JS2 (Throttle): Not connected'; }
+}
+
+function showMainContent() {
+  document.getElementById('no-gamepad').style.display = 'none';
+  if (currentMode === 'test') document.getElementById('test-mode').style.display = 'block';
+}
+
+// ==============================================================
+// TEST MODE LOGIC (unchanged)
+// ==============================================================
+function initButtonGrid(cid, bmap) {
+  const c = document.getElementById(cid); if(!c) return; c.innerHTML = '';
+  for (const [i, info] of Object.entries(bmap)) {
+    const d = document.createElement('div'); d.className = 'btn-item'; d.id = `${cid}-${i}`;
+    d.innerHTML = `<div class="btn-indicator">${parseInt(i)+1}</div><span class="btn-action" title="${info.detail}">${info.action}</span>`;
+    c.appendChild(d);
+  }
+}
+initButtonGrid('js1-buttons', JS1_BUTTON_MAP);
+initButtonGrid('js2-buttons', JS2_BUTTON_MAP);
+
+function setDeadzone(id, dz) {
+  const el = document.getElementById(id); if(!el) return;
+  el.style.left = (50-dz*50)+'%'; el.style.width = (dz*100)+'%';
+}
+setDeadzone('js1-dz-x',0.05); setDeadzone('js1-dz-y',0.05); setDeadzone('js1-dz-z',0.10);
+setDeadzone('js2-dz-x',0.15); setDeadzone('js2-dz-y',0.15); setDeadzone('js2-dz-z',0.02); setDeadzone('js2-dz-rx',0.10);
+
+function updateAxisBar(barId, valId, value, isThrottle=false) {
+  const bar = document.getElementById(barId), val = document.getElementById(valId);
+  if (!bar||!val) return; val.textContent = value.toFixed(2);
+  if (isThrottle) { const p=((value+1)/2)*100; bar.style.left='2px'; bar.style.width=`calc(${p}% - 4px)`; bar.className='axis-bar-fill throttle'; }
+  else { const p=value*50; if(value>=0){bar.style.left='50%';bar.style.width=p+'%';bar.className='axis-bar-fill';}else{bar.style.left=(50+p)+'%';bar.style.width=(-p)+'%';bar.className='axis-bar-fill negative';} }
+}
+
+function getHatState(gp) {
+  const n=gp.axes.length;
+  if(n>=2){const hx=gp.axes[n-2],hy=gp.axes[n-1];const r={up:hy<-0.5,down:hy>0.5,left:hx<-0.5,right:hx>0.5,isAxes:true};if(r.up||r.down||r.left||r.right)return r;}
+  const nb=gp.buttons.length;
+  if(nb>4){const s=nb-4;const r={up:gp.buttons[s].pressed,right:gp.buttons[s+1].pressed,down:gp.buttons[s+2].pressed,left:gp.buttons[s+3].pressed};if(r.up||r.down||r.left||r.right)return r;}
+  return {up:false,down:false,left:false,right:false};
+}
+function updateHat(pfx,hs) {
+  for(const d of['up','down','left','right']){
+    const e=document.getElementById(`${pfx}-hat-${d}`),l=document.getElementById(`${pfx}-hat-label-${d}`);
+    if(e)e.classList.toggle('active',hs[d]); if(l)l.classList.toggle('active',hs[d]);
+  }
+}
+function addLogEntry(dev,inp,act) {
+  const t=new Date().toLocaleTimeString('en-US',{hour12:false});
+  logEntries.unshift({time:t,device:dev,input:inp,action:act});
+  if(logEntries.length>MAX_LOG)logEntries.pop();
+  const el=document.getElementById('action-log'); if(!el) return;
+  el.innerHTML=logEntries.map(e=>`<div class="log-entry"><span class="log-time">${e.time}</span> <span class="log-input">${e.device} ${e.input}</span> &rarr; <span class="log-action">${e.action}</span></div>`).join('');
+}
+
+// ==============================================================
+// BIND MODE: Build UI
+// ==============================================================
+function buildBindUI() {
+  const container = document.getElementById('bind-categories');
+  container.innerHTML = '';
+  for (const [mapName, cat] of Object.entries(SC_ACTIONS)) {
+    const catDiv = document.createElement('div');
+    catDiv.className = 'bind-category';
+    const header = document.createElement('div');
+    header.className = 'bind-cat-header';
+    header.innerHTML = `<span class="cat-name">${cat.label}</span><span class="cat-count">${cat.actions.length}</span><span class="cat-arrow">&#9654;</span>`;
+    header.onclick = () => {
+      header.classList.toggle('open');
+      body.classList.toggle('open');
+    };
+    const body = document.createElement('div');
+    body.className = 'bind-cat-body';
+    for (const action of cat.actions) {
+      const row = document.createElement('div');
+      row.className = 'bind-action-row';
+      row.id = `bind-row-${action.name}`;
+      const current = bindings[action.name] || '';
+      row.innerHTML = `
+        <div class="action-name-col">
+          <div class="action-label">${action.label}</div>
+          <div class="action-sc-name">${action.name}</div>
+        </div>
+        <div class="binding-col">
+          <span class="binding-value ${current ? '' : 'empty'}" id="bind-val-${action.name}">${current || '---'}</span>
+        </div>
+        <div class="action-buttons">
+          <button class="bind-btn" onclick="startListening('${action.name}')">Bind</button>
+          <button class="clear-btn" onclick="clearBinding('${action.name}')">&#10005;</button>
+        </div>`;
+      body.appendChild(row);
+    }
+    catDiv.appendChild(header);
+    catDiv.appendChild(body);
+    container.appendChild(catDiv);
+  }
+}
+buildBindUI();
+
+// ==============================================================
+// BIND MODE: Mini monitor
+// ==============================================================
+function buildMiniMonitor() {
+  for (const jsNum of [1, 2]) {
+    const axesEl = document.getElementById(`bind-mini-js${jsNum}-axes`);
+    const btnsEl = document.getElementById(`bind-mini-js${jsNum}-btns`);
+    axesEl.innerHTML = '';
+    btnsEl.innerHTML = '';
+    const labels = jsNum === 1 ? ['X','Y','Z'] : ['X','Y','Z','RX'];
+    for (let i = 0; i < labels.length; i++) {
+      axesEl.innerHTML += `<div class="mini-axis-row"><span class="mini-label">${labels[i]}</span><div class="mini-bar"><div class="mini-bar-fill" id="mini-js${jsNum}-a${i}" style="left:50%;width:0"></div></div><span class="mini-val" id="mini-js${jsNum}-av${i}">0.00</span></div>`;
+    }
+    const btnCount = jsNum === 1 ? 16 : 14;
+    for (let i = 0; i < btnCount; i++) {
+      btnsEl.innerHTML += `<div class="mini-btn" id="mini-js${jsNum}-b${i}">${i+1}</div>`;
+    }
+  }
+}
+buildMiniMonitor();
+
+// ==============================================================
+// BIND MODE: Input capture
+// ==============================================================
+function startListening(actionName) {
+  // Cancel previous
+  if (listeningAction) stopListening();
+  listeningAction = actionName;
+  // Snapshot current axes as baseline
+  const js1 = getJS1(), js2 = getJS2();
+  baselineAxes.js1 = js1 ? [...js1.axes] : null;
+  baselineAxes.js2 = js2 ? [...js2.axes] : null;
+  // UI feedback
+  document.querySelectorAll('.bind-action-row.listening').forEach(r => r.classList.remove('listening'));
+  const row = document.getElementById(`bind-row-${actionName}`);
+  if (row) row.classList.add('listening');
+  const valEl = document.getElementById(`bind-val-${actionName}`);
+  if (valEl) { valEl.textContent = 'Press input...'; valEl.className = 'binding-value listening-indicator'; }
+}
+
+function stopListening() {
+  if (!listeningAction) return;
+  const row = document.getElementById(`bind-row-${listeningAction}`);
+  if (row) row.classList.remove('listening');
+  const valEl = document.getElementById(`bind-val-${listeningAction}`);
+  if (valEl && valEl.classList.contains('listening-indicator')) {
+    const cur = bindings[listeningAction] || '';
+    valEl.textContent = cur || '---';
+    valEl.className = 'binding-value' + (cur ? '' : ' empty');
+  }
+  listeningAction = null;
+}
+
+function captureInput(scInput) {
+  if (!listeningAction) return;
+  bindings[listeningAction] = scInput;
+  const valEl = document.getElementById(`bind-val-${listeningAction}`);
+  if (valEl) { valEl.textContent = scInput; valEl.className = 'binding-value'; }
+  const row = document.getElementById(`bind-row-${listeningAction}`);
+  if (row) row.classList.remove('listening');
+  listeningAction = null;
+  updateStats();
+}
+
+function clearBinding(actionName) {
+  delete bindings[actionName];
+  const valEl = document.getElementById(`bind-val-${actionName}`);
+  if (valEl) { valEl.textContent = '---'; valEl.className = 'binding-value empty'; }
+  updateStats();
+}
+
+function clearAllBindings() {
+  if (!confirm('Clear all bindings?')) return;
+  bindings = {};
+  document.querySelectorAll('[id^="bind-val-"]').forEach(el => { el.textContent = '---'; el.className = 'binding-value empty'; });
+  updateStats();
+}
+
+function updateStats() {
+  let bound = 0, total = 0;
+  for (const cat of Object.values(SC_ACTIONS)) { total += cat.actions.length; for (const a of cat.actions) { if (bindings[a.name]) bound++; } }
+  document.getElementById('stats-bound').textContent = bound;
+  document.getElementById('stats-unbound').textContent = total - bound;
+  // Conflict detection
+  const inputCounts = {};
+  for (const inp of Object.values(bindings)) { inputCounts[inp] = (inputCounts[inp]||0) + 1; }
+  const conflicts = Object.values(inputCounts).filter(c => c > 1).reduce((s,c) => s + c, 0);
+  document.getElementById('stats-conflicts').textContent = conflicts;
+}
+updateStats();
+
+// ==============================================================
+// BIND MODE: Detect input in update loop
+// ==============================================================
+function getAxisName(jsNum, axisIdx) {
+  const names1 = {0:'x',1:'y',2:'z',5:'z'};
+  const names2 = {0:'x',1:'y',2:'z',3:'rotx',4:'rotx',5:'rotx'};
+  const m = jsNum === 1 ? names1 : names2;
+  return m[axisIdx] || `axis${axisIdx}`;
+}
+
+function detectInputForBinding() {
+  const AXIS_THRESHOLD = 0.5;
+  const AXIS_DELTA = 0.3; // how much it must move from baseline
+  for (const jsNum of [1, 2]) {
+    const gp = jsNum === 1 ? getJS1() : getJS2();
+    if (!gp) continue;
+    const prefix = `js${jsNum}`;
+
+    // Buttons
+    for (let i = 0; i < gp.buttons.length; i++) {
+      if (gp.buttons[i].pressed) {
+        captureInput(`${prefix}_button${i+1}`);
+        return;
+      }
+    }
+
+    // Hat (axes-based)
+    const n = gp.axes.length;
+    if (n >= 2) {
+      const hx = gp.axes[n-2], hy = gp.axes[n-1];
+      const bla = jsNum === 1 ? baselineAxes.js1 : baselineAxes.js2;
+      const blhx = bla ? bla[n-2] : 0, blhy = bla ? bla[n-1] : 0;
+      if (hy < -0.5 && Math.abs(hy - blhy) > AXIS_DELTA) { captureInput(`${prefix}_hat1_up`); return; }
+      if (hy > 0.5 && Math.abs(hy - blhy) > AXIS_DELTA) { captureInput(`${prefix}_hat1_down`); return; }
+      if (hx < -0.5 && Math.abs(hx - blhx) > AXIS_DELTA) { captureInput(`${prefix}_hat1_left`); return; }
+      if (hx > 0.5 && Math.abs(hx - blhx) > AXIS_DELTA) { captureInput(`${prefix}_hat1_right`); return; }
+    }
+
+    // Regular axes
+    const bl = jsNum === 1 ? baselineAxes.js1 : baselineAxes.js2;
+    const axisLimit = n >= 4 ? n - 2 : n; // exclude hat axes
+    for (let i = 0; i < axisLimit; i++) {
+      const val = gp.axes[i];
+      const base = bl ? bl[i] : 0;
+      if (Math.abs(val) > AXIS_THRESHOLD && Math.abs(val - base) > AXIS_DELTA) {
+        const axName = getAxisName(jsNum, i);
+        captureInput(`${prefix}_${axName}`);
+        return;
+      }
+    }
+  }
+}
+
+// ==============================================================
+// BIND MODE: Update mini monitor
+// ==============================================================
+function updateMiniMonitor() {
+  let currentInput = '';
+  for (const jsNum of [1, 2]) {
+    const gp = jsNum === 1 ? getJS1() : getJS2();
+    if (!gp) continue;
+    // Axes
+    const axisLabels = jsNum === 1 ? 3 : 4;
+    for (let i = 0; i < axisLabels && i < gp.axes.length; i++) {
+      const val = gp.axes[i];
+      const bar = document.getElementById(`mini-js${jsNum}-a${i}`);
+      const vEl = document.getElementById(`mini-js${jsNum}-av${i}`);
+      if (bar) {
+        const pct = val * 50;
+        if (val >= 0) { bar.style.left = '50%'; bar.style.width = pct + '%'; }
+        else { bar.style.left = (50+pct)+'%'; bar.style.width = (-pct)+'%'; }
+      }
+      if (vEl) vEl.textContent = val.toFixed(2);
+      if (Math.abs(val) > 0.3) {
+        const axName = getAxisName(jsNum, i);
+        currentInput = `js${jsNum}_${axName} (${val.toFixed(2)})`;
+      }
+    }
+    // Buttons
+    const btnCount = jsNum === 1 ? 16 : 14;
+    for (let i = 0; i < btnCount && i < gp.buttons.length; i++) {
+      const el = document.getElementById(`mini-js${jsNum}-b${i}`);
+      if (el) {
+        const pressed = gp.buttons[i].pressed;
+        el.classList.toggle('active', pressed);
+        if (pressed) currentInput = `js${jsNum}_button${i+1}`;
+      }
+    }
+    // Hat
+    const hs = getHatState(gp);
+    for (const d of ['up','down','left','right']) {
+      if (hs[d]) currentInput = `js${jsNum}_hat1_${d}`;
+    }
+  }
+  const display = document.getElementById('live-input-display');
+  if (display) {
+    if (currentInput) {
+      display.textContent = currentInput;
+      display.classList.add('has-input');
+    } else {
+      display.textContent = listeningAction ? 'Waiting for input...' : 'Move axis or press button';
+      display.classList.remove('has-input');
+    }
+  }
+  lastDetectedInput = currentInput;
+}
+
+// ==============================================================
+// XML EXPORT
+// ==============================================================
+function generateXML() {
+  const name = document.getElementById('profile-name-input').value || 'Custom_HOTAS';
+  // Group bindings by actionmap
+  const maps = {};
+  for (const [mapName, cat] of Object.entries(SC_ACTIONS)) {
+    const actionBindings = [];
+    for (const a of cat.actions) {
+      actionBindings.push({ name: a.name, input: bindings[a.name] || '' });
+    }
+    if (actionBindings.some(b => b.input)) maps[mapName] = actionBindings;
+  }
+  let xml = `<!-- Star Citizen HOTAS Profile -->\n`;
+  xml += `<!-- Generated by SC HOTAS Tool -->\n`;
+  xml += `<!-- Place in: USER/Client/0/Controls/Mappings -->\n`;
+  xml += `<!-- Console: pp_RebindKeys ${name} -->\n`;
+  xml += `<ActionMaps version="1" optionsVersion="2" rebindVersion="2" profileName="${esc(name)}">\n`;
+  xml += ` <CustomisationUIHeader label="${esc(name)}" description="Generated by SC HOTAS Tool" image="">\n`;
+  xml += `  <devices>\n   <keyboard instance="1"/>\n   <mouse instance="1"/>\n   <joystick instance="1"/>\n   <joystick instance="2"/>\n  </devices>\n`;
+  xml += `  <categories>\n   <category label="@ui_CCSpaceFlight"/>\n  </categories>\n`;
+  xml += ` </CustomisationUIHeader>\n\n`;
+  xml += ` <options type="keyboard" instance="1"/>\n`;
+  xml += ` <options type="joystick" instance="1">\n  <flight_move exponent="1.5"/>\n </options>\n`;
+  xml += ` <options type="joystick" instance="2">\n  <flight_throttle_abs invert="1"/>\n </options>\n\n`;
+  xml += ` <modifiers />\n\n`;
+  for (const [mapName, actions] of Object.entries(maps)) {
+    xml += ` <actionmap name="${mapName}">\n`;
+    for (const a of actions) {
+      xml += `  <action name="${a.name}">\n   <rebind input="${esc(a.input)}"/>\n  </action>\n`;
+    }
+    xml += ` </actionmap>\n\n`;
+  }
+  xml += `</ActionMaps>\n`;
+  return xml;
+}
+
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+function exportXML() {
+  const xml = generateXML();
+  document.getElementById('export-preview').textContent = xml;
+  document.getElementById('export-modal').classList.remove('hidden');
+}
+
+function closeExportModal() { document.getElementById('export-modal').classList.add('hidden'); }
+
+function copyXMLToClipboard() {
+  const xml = generateXML();
+  navigator.clipboard.writeText(xml).then(() => showToast('Copied to clipboard!'));
+}
+
+function downloadXML() {
+  const name = document.getElementById('profile-name-input').value || 'Custom_HOTAS';
+  const xml = generateXML();
+  const blob = new Blob([xml], { type: 'application/xml' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `layout_${name}_exported.xml`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('XML downloaded!');
+  closeExportModal();
+}
+
+// ==============================================================
+// XML IMPORT
+// ==============================================================
+document.getElementById('import-xml-input').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(ev.target.result, 'text/xml');
+      const root = doc.querySelector('ActionMaps');
+      if (!root) { showToast('Invalid XML: no ActionMaps root'); return; }
+      // Profile name
+      const pName = root.getAttribute('profileName');
+      if (pName) document.getElementById('profile-name-input').value = pName;
+      // Parse bindings
+      bindings = {};
+      const actionEls = doc.querySelectorAll('actionmap > action');
+      actionEls.forEach(aEl => {
+        const name = aEl.getAttribute('name');
+        const rebind = aEl.querySelector('rebind');
+        if (rebind) {
+          const input = rebind.getAttribute('input');
+          if (input) bindings[name] = input;
+        }
+      });
+      // Update UI
+      for (const cat of Object.values(SC_ACTIONS)) {
+        for (const a of cat.actions) {
+          const valEl = document.getElementById(`bind-val-${a.name}`);
+          if (valEl) {
+            const b = bindings[a.name] || '';
+            valEl.textContent = b || '---';
+            valEl.className = 'binding-value' + (b ? '' : ' empty');
+          }
+        }
+      }
+      updateStats();
+      showToast(`Imported ${Object.keys(bindings).length} bindings from "${pName}"`);
+    } catch (err) {
+      showToast('Error parsing XML: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  e.target.value = ''; // reset
+});
+
+// ==============================================================
+// TOAST
+// ==============================================================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ==============================================================
+// MAIN UPDATE LOOP
+// ==============================================================
+function update() {
+  const js1 = getJS1(), js2 = getJS2();
+
+  // -- Test mode updates --
+  if (currentMode === 'test' && js1) {
+    const a = js1.axes, x = a[0]||0, y = a[1]||0;
+    let z = 0; if(a.length>2)z=a[2]; if(a.length>5&&Math.abs(a[5])>Math.abs(z))z=a[5];
+    updateAxisBar('js1-bar-x','js1-val-x',x); updateAxisBar('js1-bar-y','js1-val-y',y); updateAxisBar('js1-bar-z','js1-val-z',z);
+    const dot=document.getElementById('js1-dot-xy'); if(dot){dot.style.left=(50+x*48)+'%';dot.style.top=(50+y*48)+'%';}
+    const th=0.05;
+    const ax=document.getElementById('js1-act-x'),ay=document.getElementById('js1-act-y'),az=document.getElementById('js1-act-z');
+    if(ax)ax.classList.toggle('active',Math.abs(x)>th); if(ay)ay.classList.toggle('active',Math.abs(y)>th); if(az)az.classList.toggle('active',Math.abs(z)>th);
+    for(const[i,info]of Object.entries(JS1_BUTTON_MAP)){const bi=parseInt(i);const el=document.getElementById(`js1-buttons-${i}`);if(el&&js1.buttons[bi]){const p=js1.buttons[bi].pressed;el.classList.toggle('active',p);const pp=prevButtonStates.js1[bi]||false;if(p&&!pp)addLogEntry('JS1',info.sc,info.action);prevButtonStates.js1[bi]=p;}}
+    const hs=getHatState(js1);updateHat('js1',hs);for(const d of['up','down','left','right']){const pd=prevButtonStates.js1[`hat_${d}`]||false;if(hs[d]&&!pd)addLogEntry('JS1',`hat1_${d}`,JS1_HAT_ACTIONS[d]);prevButtonStates.js1[`hat_${d}`]=hs[d];}
+  }
+  if (currentMode === 'test' && js2) {
+    const a=js2.axes,mx=a[0]||0,my=a[1]||0,thr=a.length>2?a[2]:0;
+    let rk=0;if(a.length>3)rk=a[3];if(a.length>4&&Math.abs(a[4])>Math.abs(rk))rk=a[4];if(a.length>5&&Math.abs(a[5])>Math.abs(rk))rk=a[5];
+    updateAxisBar('js2-bar-z','js2-val-z',thr,true);updateAxisBar('js2-bar-x','js2-val-x',mx);updateAxisBar('js2-bar-y','js2-val-y',my);updateAxisBar('js2-bar-rx','js2-val-rx',rk);
+    const dot2=document.getElementById('js2-dot-xy');if(dot2){dot2.style.left=(50+mx*48)+'%';dot2.style.top=(50+my*48)+'%';}
+    const th=0.05;
+    const tz=document.getElementById('js2-act-z'),tx=document.getElementById('js2-act-x'),ty=document.getElementById('js2-act-y'),trx=document.getElementById('js2-act-rx');
+    if(tz)tz.classList.toggle('active',Math.abs(thr)>th);if(tx)tx.classList.toggle('active',Math.abs(mx)>th);if(ty)ty.classList.toggle('active',Math.abs(my)>th);if(trx)trx.classList.toggle('active',Math.abs(rk)>th);
+    for(const[i,info]of Object.entries(JS2_BUTTON_MAP)){const bi=parseInt(i);const el=document.getElementById(`js2-buttons-${i}`);if(el&&js2.buttons[bi]){const p=js2.buttons[bi].pressed;el.classList.toggle('active',p);const pp=prevButtonStates.js2[bi]||false;if(p&&!pp)addLogEntry('JS2',info.sc,info.action);prevButtonStates.js2[bi]=p;}}
+    const hs=getHatState(js2);updateHat('js2',hs);for(const d of['up','down','left','right']){const pd=prevButtonStates.js2[`hat_${d}`]||false;if(hs[d]&&!pd)addLogEntry('JS2',`hat1_${d}`,JS2_HAT_ACTIONS[d]);prevButtonStates.js2[`hat_${d}`]=hs[d];}
+  }
+
+  // -- Bind mode updates --
+  if (currentMode === 'bind') {
+    updateMiniMonitor();
+    if (listeningAction) detectInputForBinding();
+  }
+
+  requestAnimationFrame(update);
+}
+requestAnimationFrame(update);
+
+// Gamepad polling fallback
+setInterval(()=>{const gps=navigator.getGamepads();for(let i=0;i<gps.length;i++){if(gps[i]&&!gamepads[i]){gamepads[i]=gps[i];updateDeviceSelects();autoAssignDevices();updateConnectionStatus();showMainContent();}}},1000);
+
+// ESC to cancel binding
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && listeningAction) stopListening(); });
+</script>
+</body>
+</html>

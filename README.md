@@ -1,0 +1,178 @@
+> Note: WORK IN PROGRESS. Bind Mode is not generating correct mappings yet.
+
+# SC HOTAS Mapping Helper
+
+A browser-based tool for testing and creating HOTAS binding profiles for [Star Citizen](https://robertsspaceindustries.com/) — built specifically for **Linux** players who don't have access to tools like Thrustmaster's T.A.R.G.E.T. software.
+
+Works with **any joystick or throttle** recognized by the browser Gamepad API, with auto-detection for the popular **Thrustmaster T16000m + TWCS Throttle** combo.
+
+> **Zero install. No dependencies. Just open the HTML file in your browser.**
+
+---
+
+## What It Does
+
+### Test Mode
+
+Plug in your HOTAS and see every input visualized in real-time:
+
+- **Crosshair displays** for stick and ministick axes
+- **Axis bars** with deadzone indicators and live values
+- **Button grid** that lights up on press, showing the mapped SC action
+- **Hat switch** directional visualization
+- **Live action log** capturing every input with timestamps
+
+Useful for verifying that your devices are detected correctly on Linux, checking axis ranges, identifying button indices, and spotting stick drift before you even launch the game.
+
+### Bind Mode
+
+Create a full Star Citizen keybinding profile from scratch — or import and edit an existing one:
+
+1. Open a category (Flight Movement, Weapons, Shields, Mining, etc.)
+2. Click **Bind** next to any Star Citizen action
+3. Press a button or move an axis on your HOTAS
+4. The input is captured and mapped
+5. Hit **Export XML** when done — ready to drop into your SC install
+
+Features:
+
+- **70+ Star Citizen actions** organized by category
+- **Live input monitor** sidebar showing all axes and buttons in real-time while binding
+- **Conflict detection** warns you about duplicate bindings
+- **Import XML** to load and edit existing profiles
+- **Export** as a properly formatted SC actionmap XML
+- **Copy to clipboard** or **download** the XML file directly
+
+---
+
+## Getting Started
+
+### Quick Start
+
+1. Download `hotas_tester.html`
+2. Open it in **Firefox** or **Chrome**
+3. Plug in your HOTAS (joystick first, then throttle, for consistent ordering)
+4. Press any button — the tool auto-detects your devices
+
+### Installing a Generated Profile in Star Citizen
+
+1. Copy your exported XML file to:
+   ```
+   <SC Install>/StarCitizen/LIVE/USER/Client/0/Controls/Mappings/
+   ```
+   Create the `Mappings` folder if it doesn't exist.
+
+2. Launch Star Citizen, open the console with `~` and type:
+   ```
+   pp_RebindKeys layout_YourProfileName_exported
+   ```
+   (without the `.xml` extension)
+
+3. If your joystick and throttle are swapped (JS1/JS2 reversed), run:
+   ```
+   pp_resortdevices joystick 1 2
+   ```
+
+### Linux Notes
+
+- The tool uses the [Gamepad API](https://developer.mozilla.org/en-US/docs/Web/API/Gamepad_API), which works out of the box on Firefox and Chrome on Linux.
+- Your devices should be visible at `/dev/input/js*`. If not, check that your user is in the `input` group.
+- Plug in the joystick **before** the throttle for consistent `js1`/`js2` ordering — Linux doesn't always assign them the same way.
+- Hat switches are detected both as axes (common on Linux HID drivers) and as buttons, with automatic fallback.
+- Axis indices may differ from what Star Citizen sees through Wine/Proton. The tool lets you see the raw indices so you can verify.
+
+---
+
+## Troubleshooting (Linux / Wine / Proton)
+
+### TWCS Throttle shows up as a second "T.16000M"
+
+This is the most common issue on Linux. Wine's HID layer reports both the joystick and the TWCS throttle with the same product name `T.16000M`. Star Citizen then shows two identical "Joystick" entries in the keybinding UI instead of recognizing one as a throttle.
+
+**What still works:** All button and axis bindings using `js1_` / `js2_` prefixes work correctly because they reference the device by instance number, not by name. Your flight controls, weapons, and throttle should all respond.
+
+**What breaks:** The `<deviceoptions>` XML section matches devices by name, so it's impossible to set different deadzones for the joystick vs. the throttle in the XML alone. The included profile uses a single `<deviceoptions>` block with conservative deadzones for both.
+
+**Fix:** After loading the profile with `pp_RebindKeys`, go to Options > Keybinding > Advanced Controls and adjust deadzones per-device in the UI. The ministick on the TWCS typically needs a higher deadzone (~15%) to avoid drift, while the main joystick axes can be lower (~5%).
+
+### JS1 and JS2 are swapped
+
+If the throttle is responding to joystick bindings (or vice versa), your devices were enumerated in the wrong order. Fix it with the console command:
+
+```
+pp_resortdevices joystick 1 2
+```
+
+Then re-import the profile. To prevent this, try plugging in the **joystick first**, then the throttle. On some Linux setups, USB port order determines device numbering.
+
+### No gamepad detected in the browser tester
+
+Make sure your user is in the `input` group:
+
+```bash
+sudo usermod -aG input $USER
+```
+
+Then log out and back in. Verify the devices appear at `/dev/input/js0` and `/dev/input/js1`.
+
+Firefox may also need `dom.gamepad.extensions.enabled` set to `true` in `about:config`.
+
+### Axes respond but values seem wrong
+
+Star Citizen through Wine/Proton may see different axis indices than the browser Gamepad API. Use the HOTAS Tester's Test Mode to identify which physical axis maps to which index in the browser, then cross-reference with the in-game binding screen to confirm they match. If they differ, use Bind Mode to create a profile that maps the correct browser-detected indices.
+
+---
+
+## Included Files
+
+| File | Description |
+|------|-------------|
+| `hotas_tester.html` | The main tool — test mode + bind mode with XML export |
+| `layout_T16000m_HOTAS_Allrounder_exported.xml` | Pre-made all-rounder profile for T16000m + TWCS |
+| `T16000m_HOTAS_Cheatsheet.md` | Quick-reference card for the included profile |
+
+---
+
+## Pre-Made Profile: T16000m All-Rounder
+
+The repo includes a ready-to-use profile for the **Thrustmaster T16000m FCS HOTAS** (joystick + TWCS throttle) covering flight, combat, targeting, shields, power management, and mining.
+
+**Joystick (JS1):** Pitch/Roll/Yaw on axes, trigger = fire, thumb = secondary fire, hat = targeting, base buttons = scanning, ESP, COMSTAB, etc.
+
+**Throttle (JS2):** Main slider = throttle, ministick = strafe, rocker = forward/back strafe, paddle = boost, buttons = QT/landing/power/mining, hat = shield management.
+
+See `T16000m_HOTAS_Cheatsheet.md` for the full layout.
+
+---
+
+## How It Was Built
+
+This tool was co-created with [Claude](https://claude.ai) (Anthropic) in a single session using [Cowork mode](https://claude.ai). The entire workflow — researching the SC XML format, designing the HOTAS layout, building the tester, adding bind mode with XML export — was a collaborative back-and-forth between human ideas and AI implementation.
+
+---
+
+## Contributing
+
+Contributions are welcome! Some ideas:
+
+- **More pre-made profiles** for other HOTAS setups (X52, X56, VKB, Virpil, etc.)
+- **Additional SC actions** as new gameplay systems are added
+- **Dual-stick (HOSAS) support** with dedicated layout templates
+- **Improved axis auto-detection** for more Linux HID driver variants
+- **Deadzone/curve editor** with visual preview
+
+If you create a profile for your own HOTAS and want to share it, PRs are very welcome.
+
+---
+
+## License
+
+This project is licensed under the **GNU General Public License v3.0** — see [LICENSE](LICENSE) for details.
+
+---
+
+## Links
+
+- [Star Citizen](https://robertsspaceindustries.com/)
+- [RSI Knowledge Base: Custom Profiles](https://support.robertsspaceindustries.com/hc/en-us/articles/360000183328)
+- [Star Citizen Wiki: Controls](https://starcitizen.fandom.com/wiki/Controls)
